@@ -3,6 +3,7 @@ from rest_framework.routers import DefaultRouter
 from rest_framework_nested.routers import NestedSimpleRouter
 from .views import (
     AuthorViewSet, 
+    PublisherViewSet,
     BookViewSet, 
     GenreViewSet,
     ReviewViewSet,
@@ -14,6 +15,7 @@ from .views import (
 # Crear el router
 router = DefaultRouter()
 router.register(r'authors', AuthorViewSet, basename='author')
+router.register(r'publishers', PublisherViewSet, basename='publisher')
 router.register(r'books', BookViewSet, basename='book')
 router.register(r'genres', GenreViewSet, basename='genre')
 router.register(r'reviews', ReviewViewSet, basename='review')

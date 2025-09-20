@@ -38,11 +38,14 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'django_filters',  # Para filtros avanzados
+    'corsheaders',  # Para permitir peticiones desde el frontend
     'api',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'corsheaders.middleware.CorsMiddleware',  # Debe estar al principio
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -127,8 +130,82 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.SessionAuthentication',
+        'rest_framework_simplejwt.authentication.JWTAuthentication'
     ],
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
-    ]
+    ],
+    'EXCEPTION_HANDLER': 'api.exceptions.custom_exception_handler',
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 20,
+    'DEFAULT_FILTER_BACKENDS': [
+        'django_filters.rest_framework.DjangoFilterBackend',
+        'rest_framework.filters.SearchFilter',
+        'rest_framework.filters.OrderingFilter',
+    ],
 }
+
+# CONFIGURACIÓN DE JWT
+from datetime import timedelta
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),  # Token válido por 1 hora
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),     # Refresh token válido por 7 días
+    'ROTATE_REFRESH_TOKENS': True,                   # Generar nuevo refresh token al renovar
+    'BLACKLIST_AFTER_ROTATION': True,                # Invalidar refresh token anterior
+    'UPDATE_LAST_LOGIN': True,                       # Actualizar último login
+    
+    'ALGORITHM': 'HS256',                            # Algoritmo de encriptación
+    'SIGNING_KEY': SECRET_KEY,                       # Usar la SECRET_KEY de Django
+    'VERIFYING_KEY': None,
+    'AUDIENCE': None,
+    'ISSUER': None,
+    
+    'AUTH_HEADER_TYPES': ('Bearer',),                # Tipo de header: "Authorization: Bearer <token>"
+    'AUTH_HEADER_NAME': 'HTTP_AUTHORIZATION',        # Nombre del header
+    'USER_ID_FIELD': 'id',                           # Campo del usuario en el token
+    'USER_ID_CLAIM': 'user_id',                      # Claim del user ID en el token
+    
+    'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
+    'TOKEN_TYPE_CLAIM': 'token_type',
+    
+    'JTI_CLAIM': 'jti',                              # JWT ID claim
+    
+    'SLIDING_TOKEN_REFRESH_EXP_CLAIM': 'refresh_exp',
+    'SLIDING_TOKEN_LIFETIME': timedelta(minutes=5),
+    'SLIDING_TOKEN_REFRESH_LIFETIME': timedelta(days=1),
+}
+
+# CONFIGURACIÓN DE CORS
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",  # React por defecto
+    "http://127.0.0.1:3000",
+    "http://localhost:3001",  # Puerto alternativo
+    "http://127.0.0.1:3001",
+]
+
+# Para desarrollo, también permitir cualquier origen (NO usar en producción)
+CORS_ALLOW_ALL_ORIGINS = True
+
+# Headers permitidos
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+]
+
+# Métodos permitidos
+CORS_ALLOW_METHODS = [
+    'DELETE',
+    'GET',
+    'OPTIONS',
+    'PATCH',
+    'POST',
+    'PUT',
+]
