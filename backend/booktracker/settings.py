@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'django_filters',  # Para filtros avanzados
     'corsheaders',  # Para permitir peticiones desde el frontend
+    'drf_spectacular',  # Para documentación Swagger/OpenAPI
     'api',
 ]
 
@@ -143,6 +144,7 @@ REST_FRAMEWORK = {
         'rest_framework.filters.SearchFilter',
         'rest_framework.filters.OrderingFilter',
     ],
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
 }
 
 # CONFIGURACIÓN DE JWT
@@ -209,3 +211,13 @@ CORS_ALLOW_METHODS = [
     'POST',
     'PUT',
 ]
+
+# CONFIGURACIÓN DE DRF-SPECTACULAR (Swagger/OpenAPI)
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'Book Tracker API',
+    'DESCRIPTION': 'API para gestionar libros, estanterías y reseñas',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
+    'COMPONENT_SPLIT_REQUEST': True,
+    'SCHEMA_PATH_PREFIX': '/api/',
+}
