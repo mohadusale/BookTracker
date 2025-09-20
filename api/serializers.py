@@ -6,13 +6,18 @@ from .models import (
     Book,
     ReadingStatus,
     Review,
+    Bookshelf,
+    Comment,
+    BookshelfEntry,
 )
 
+# Author Serializers
 class AuthorSerializer(serializers.ModelSerializer):
     class Meta:
         model = Author
         fields = '__all__'
 
+# Book Serializers
 # Serializador solo para leer datos de Books (GET)
 class BookReadSerializer(serializers.ModelSerializer):
     # Usamos StringRelatedField para mostrar nombres legibles
@@ -37,6 +42,7 @@ class BookWriteSerializer(serializers.ModelSerializer):
             'publisher', 'authors', 'genres',
         ]
 
+# Genre Serializers
 class GenreSerializer(serializers.ModelSerializer):
     class Meta:
         model = Genre
@@ -44,8 +50,8 @@ class GenreSerializer(serializers.ModelSerializer):
 
 # Review Serializers
 class ReviewReadSerializer(serializers.ModelSerializer):
-    user = serializers.StringRelatedField(read_only=True)
-    book = serializers.StringRelatedField(read_only=True)
+    user = serializers.StringRelatedField()
+    book = serializers.StringRelatedField()
     
     class Meta:
         model = Review
@@ -54,12 +60,12 @@ class ReviewReadSerializer(serializers.ModelSerializer):
 class ReviewWriteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Review
-        fields = ['id', 'user', 'book', 'review_text', 'created_at', 'updated_at']
+        fields = ['book', 'review_text']
 
 # ReadingStatus Serializers
 class ReadingStatusReadSerializer(serializers.ModelSerializer):
-    user = serializers.StringRelatedField(read_only=True)
-    book = serializers.StringRelatedField(read_only=True)
+    user = serializers.StringRelatedField()
+    book = serializers.StringRelatedField()
 
     class Meta:
         model = ReadingStatus
@@ -68,4 +74,32 @@ class ReadingStatusReadSerializer(serializers.ModelSerializer):
 class ReadingStatusWriteSerializer(serializers.ModelSerializer):
     class Meta:
         model = ReadingStatus
-        fields = ['id', 'user', 'book', 'status', 'rating', 'started_at', 'finished_at']
+        fields = ['book', 'status', 'rating', 'started_at', 'finished_at']
+
+# Bookshelf Serializers
+class BookshelfReadSerializer(serializers.ModelSerializer):
+    user = serializers.StringRelatedField()
+
+    class Meta:
+        model = Bookshelf
+        fields = '__all__'
+
+class BookshelfWriteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Bookshelf
+        fields = ['name','description']
+
+# Comment Serializers
+class CommentReadSerializer(serializers.ModelSerializer):
+    user = serializers.StringRelatedField()
+    parent_comment = serializers.StringRelatedField(read_only=True)
+
+    class Meta:
+        model = Comment
+        fields = '__all__'
+
+class CommentWriteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Comment
+        fields = ['comment_text', 'parent_comment']
+

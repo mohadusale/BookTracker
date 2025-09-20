@@ -1,12 +1,14 @@
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated
-from .models import Author, Book, Genre, Review, ReadingStatus
+from .models import Author, Book, Genre, Review, ReadingStatus, Bookshelf, Comment
 from .serializers import (
     AuthorSerializer, 
     BookReadSerializer, BookWriteSerializer, 
     GenreSerializer,
     ReviewReadSerializer, ReviewWriteSerializer,
     ReadingStatusReadSerializer, ReadingStatusWriteSerializer,
+    BookshelfReadSerializer, BookshelfWriteSerializer,
+    CommentReadSerializer, CommentWriteSerializer,
 )
 from .permissions import IsOwnerOrReadOnly
 
@@ -76,3 +78,39 @@ class ReadingStatusViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
+
+# BookshelfViewSet
+class BookshelfViewSet(viewsets.ModelViewSet):
+    queryset = Bookshelf.objects.all()
+    permission_classes = [IsAuthenticated]
+
+    # Un usuario solo puede ver sus estanterías
+    def get_queryset(self):
+        return Bookshelf.objects.filter(user=self.request.user)
+    
+    def get_serializer_class(self):
+        if self.action in ['list', 'retrieve']:
+            return BookshelfReadSerializer
+        return BookshelfWriteSerializer
+    
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+# CommentViewSet
+class CommentViewSet(viewsets.ModelViewSet):
+    queryset = Comment.objects.all()
+    permission_classes = [IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly]
+
+    def get_queryset(self):
+        # Filtra los comentarios por el 'review_pk' de la URL
+        # Ahora incluye tanto comentarios principales como respuestas
+        return Comment.objects.filter(review__id=self.kwargs['review_pk'])
+    
+    def get_serializer_class(self):
+        if self.action in ['list', 'retrieve']:
+            return CommentReadSerializer
+        return CommentWriteSerializer
+
+    def perform_create(self, serializer):
+        review = Review.objects.get(pk=self.kwargs['review_pk'])
+        serializer.save(user=self.request.user, review=review)

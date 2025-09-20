@@ -115,4 +115,4 @@ class Comment(models.Model):
     parent_comment = models.ForeignKey('self', on_delete=models.CASCADE, related_name="replies", null=True, blank=True)
 
     def __str__(self):
-        return f"Comment by {self.user.username} on Review ID: {self.review.id}"
+        return f"Comment ID: {self.id} on Review ID: {self.review.id}"
