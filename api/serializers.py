@@ -66,12 +66,26 @@ class AuthorSerializer(serializers.ModelSerializer):
         """
         Valida que la fecha de nacimiento sea anterior a la fecha de muerte
         """
+        from django.utils import timezone
+        
         birth_date = data.get('birth_date')
         death_date = data.get('death_date')
+        today = timezone.now().date()
         
         if birth_date and death_date and birth_date >= death_date:
             raise serializers.ValidationError(
                 "La fecha de nacimiento debe ser anterior a la fecha de muerte"
+            )
+        
+        # Validar que las fechas no sean futuras
+        if birth_date and birth_date > today:
+            raise serializers.ValidationError(
+                "La fecha de nacimiento no puede ser futura"
+            )
+        
+        if death_date and death_date > today:
+            raise serializers.ValidationError(
+                "La fecha de fallecimiento no puede ser futura"
             )
         
         return data
@@ -130,6 +144,24 @@ class ReviewWriteSerializer(serializers.ModelSerializer):
     class Meta: 
         model = Review
         fields = ['review_text']
+    
+    def validate(self, data):
+        """
+        Valida la lógica de negocio del Review
+        """
+        review_text = data.get('review_text')
+        
+        if not review_text or not review_text.strip():
+            raise serializers.ValidationError(
+                "La reseña no puede estar vacía"
+            )
+        
+        if len(review_text.strip()) < 10:
+            raise serializers.ValidationError(
+                "La reseña debe tener al menos 10 caracteres"
+            )
+        
+        return data
 
 # ReadingStatus Serializers
 class ReadingStatusReadSerializer(serializers.ModelSerializer):
@@ -212,6 +244,24 @@ class CommentWriteSerializer(serializers.ModelSerializer):
         if 'context' in kwargs and 'review_id' in kwargs['context']:
             review_id = kwargs['context']['review_id']
             self.fields['parent_comment'].queryset = Comment.objects.filter(review_id=review_id)
+    
+    def validate(self, data):
+        """
+        Valida la lógica de negocio del Comment
+        """
+        comment_text = data.get('comment_text')
+        
+        if not comment_text or not comment_text.strip():
+            raise serializers.ValidationError(
+                "El comentario no puede estar vacío"
+            )
+        
+        if len(comment_text.strip()) < 3:
+            raise serializers.ValidationError(
+                "El comentario debe tener al menos 3 caracteres"
+            )
+        
+        return data
     
     def validate_parent_comment(self, value):
         """

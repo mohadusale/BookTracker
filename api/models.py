@@ -3,6 +3,8 @@ from django.contrib.auth.models import User
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.core.exceptions import ValidationError
 from django.utils import timezone
+from django.db.models.signals import m2m_changed
+from django.dispatch import receiver
 
 # Create your models here.
 class Author(models.Model):
@@ -130,14 +132,17 @@ class Book(models.Model):
                     'publication_date': 'La fecha de publicación no puede ser futura.'
                 })
         
-        # Validar que el libro tenga al menos un autor
-        if not self.authors.exists() and self.pk:
-            raise ValidationError({
-                'authors': 'El libro debe tener al menos un autor.'
-            })
+        # La validación de autores se hace en el método save() después de guardar
 
     def save(self, *args, **kwargs):
-        self.full_clean()
+        # Validar fechas antes de guardar
+        if self.publication_date:
+            today = timezone.now().date()
+            if self.publication_date > today:
+                raise ValidationError({
+                    'publication_date': 'La fecha de publicación no puede ser futura.'
+                })
+        
         super().save(*args, **kwargs)
 
     def __str__(self):
@@ -318,3 +323,16 @@ class Comment(models.Model):
 
     def __str__(self):
         return f"Comment ID: {self.id}"
+
+
+# Señal para validar que un libro tenga al menos un autor
+@receiver(m2m_changed, sender=Book.authors.through)
+def validate_book_authors(sender, instance, action, **kwargs):
+    """
+    Valida que un libro tenga al menos un autor después de cambios en la relación ManyToMany
+    """
+    if action in ['post_add', 'post_remove', 'post_clear'] and instance.pk:
+        if not instance.authors.exists():
+            raise ValidationError({
+                'authors': 'El libro debe tener al menos un autor.'
+            })
