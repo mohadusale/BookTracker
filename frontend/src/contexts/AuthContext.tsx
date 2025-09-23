@@ -8,7 +8,8 @@ const initialState: AuthState = {
   user: null,
   tokens: null,
   isAuthenticated: false,
-  isLoading: true,
+  isLoading: false,
+  isInitializing: true, // Inicialmente verificando autenticación
   error: null,
 };
 
@@ -18,6 +19,7 @@ type AuthAction =
   | { type: 'AUTH_SUCCESS'; payload: { user: AuthUser; tokens: any } }
   | { type: 'AUTH_FAILURE'; payload: string }
   | { type: 'AUTH_LOGOUT' }
+  | { type: 'INIT_COMPLETE' }
   | { type: 'CLEAR_ERROR' };
 
 // Reducer
@@ -54,7 +56,13 @@ const authReducer = (state: AuthState, action: AuthAction): AuthState => {
         tokens: null,
         isAuthenticated: false,
         isLoading: false,
+        isInitializing: false,
         error: null,
+      };
+    case 'INIT_COMPLETE':
+      return {
+        ...state,
+        isInitializing: false,
       };
     case 'CLEAR_ERROR':
       return {
@@ -109,6 +117,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       } catch (error) {
         console.error('Error verificando autenticación:', error);
         dispatch({ type: 'AUTH_LOGOUT' });
+      } finally {
+        // Marcar como completada la inicialización
+        dispatch({ type: 'INIT_COMPLETE' });
       }
     };
 

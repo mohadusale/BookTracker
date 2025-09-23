@@ -1,4 +1,4 @@
-import React, { Component, ErrorInfo, ReactNode } from 'react';
+import { Component, type ErrorInfo, type ReactNode } from 'react';
 import { colors } from '../config/colors';
 
 interface Props {
@@ -75,7 +75,7 @@ class ErrorBoundary extends Component<Props, State> {
                 Por favor, intenta recargar la página.
               </p>
               
-              {process.env.NODE_ENV === 'development' && this.state.error && (
+              {import.meta.env.DEV && this.state.error && (
                 <details className="mb-4">
                   <summary className="cursor-pointer text-sm font-medium text-gray-600 hover:text-gray-800">
                     Detalles del error (desarrollo)

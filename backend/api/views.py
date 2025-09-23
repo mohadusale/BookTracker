@@ -330,6 +330,39 @@ def custom_login(request):
             'details': str(e)
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+# Endpoint para obtener perfil del usuario
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_user_profile(request):
+    """
+    Endpoint para obtener el perfil del usuario autenticado
+    """
+    try:
+        user = request.user
+        
+        return Response({
+            'error': False,
+            'message': 'Perfil obtenido exitosamente',
+            'data': {
+                'id': user.id,
+                'username': user.username,
+                'email': user.email,
+                'first_name': user.first_name,
+                'last_name': user.last_name,
+                'date_joined': user.date_joined,
+                'is_active': user.is_active,
+                'is_staff': user.is_staff,
+                'is_superuser': user.is_superuser,
+            }
+        }, status=status.HTTP_200_OK)
+        
+    except Exception as e:
+        return Response({
+            'error': True,
+            'message': 'Error al obtener el perfil del usuario',
+            'details': str(e)
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 # Endpoint para registro de usuarios
 @api_view(['POST'])
 @permission_classes([AllowAny])
@@ -363,7 +396,7 @@ def register_user(request):
                 'error': True,
                 'message': 'El nombre de usuario ya existe',
                 'details': {
-                    'username': ['Este nombre de usuario ya está en uso']
+                    'Este nombre de usuario ya está en uso'
                 }
             }, status=status.HTTP_400_BAD_REQUEST)
         
@@ -372,7 +405,7 @@ def register_user(request):
                 'error': True,
                 'message': 'El email ya está registrado',
                 'details': {
-                    'email': ['Este email ya está en uso']
+                    'Este email ya está en uso'
                 }
             }, status=status.HTTP_400_BAD_REQUEST)
         

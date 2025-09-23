@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FormIcon, FormInput, FormButton, FormNavigation, LoadingSpinner, ErrorMessage, PasswordInput } from '../ui';
 import { useAuth } from '../../contexts/AuthContext';
 import { useForm, type FormValidationConfig } from '../../hooks/useForm';
@@ -25,6 +25,12 @@ const LoginForm: React.FC<LoginFormProps> = ({ onToggleMode }) => {
     { username: '', password: '' },
     validationConfig
   );
+
+  // Limpiar errores cuando el formulario se monte
+  useEffect(() => {
+    clearError();
+    clearErrors();
+  }, []); // Solo ejecutar una vez al montar
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

@@ -12,6 +12,7 @@ from .views import (
     CommentViewSet,
     register_user,
     custom_login,
+    get_user_profile,
 )
 
 # Crear el router
@@ -40,4 +41,5 @@ urlpatterns = [
     path('', include(review_router.urls)),
     path('users/register/', register_user, name='register_user'),
     path('users/login/', custom_login, name='custom_login'),
+    path('users/profile/', get_user_profile, name='get_user_profile'),
 ]

@@ -5,21 +5,21 @@ import { useAuth } from '../contexts/AuthContext';
 import DashboardPage from './DashboardPage';
 
 const LoginPage: React.FC = () => {
+  const { isAuthenticated, isInitializing } = useAuth();
   const { isSignUp, isAnimating, toggleMode } = useAnimation();
-  const { isAuthenticated, isLoading } = useAuth();
 
   // Si está autenticado, mostrar el dashboard
   if (isAuthenticated) {
     return <DashboardPage />;
   }
 
-  // Si está cargando, mostrar un spinner
-  if (isLoading) {
+  // Solo mostrar pantalla de carga durante la inicialización (verificación de tokens)
+  if (isInitializing) {
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Cargando...</p>
+          <p className="mt-4 text-gray-600">Verificando sesión...</p>
         </div>
       </div>
     );

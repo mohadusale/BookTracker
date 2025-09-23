@@ -41,5 +41,6 @@ export interface AuthState {
   tokens: AuthTokens | null;
   isAuthenticated: boolean;
   isLoading: boolean;
+  isInitializing: boolean; // Para distinguir entre loading inicial y loading de auth
   error: string | null;
 }

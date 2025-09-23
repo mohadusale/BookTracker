@@ -218,8 +218,14 @@ class AuthService {
         throw new Error('Error al obtener el perfil del usuario');
       }
 
-      const userData = await response.json();
-      return userData;
+      const responseData = await response.json();
+      
+      // El backend devuelve los datos del usuario en responseData.data
+      if (responseData.error === false && responseData.data) {
+        return responseData.data;
+      } else {
+        throw new Error(responseData.message || 'Error al obtener el perfil del usuario');
+      }
     } catch (error) {
       console.error('Error al obtener perfil:', error);
       throw error;
