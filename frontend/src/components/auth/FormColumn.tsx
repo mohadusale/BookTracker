@@ -10,7 +10,7 @@ interface FormColumnProps {
 const FormColumn: React.FC<FormColumnProps> = ({ isSignUp, isAnimating, onToggleMode }) => {
   return (
     <div 
-      className="bg-white rounded-2xl shadow-2xl flex items-center justify-center p-8 relative overflow-hidden transition-all duration-600 ease-in-out z-10 w-[480px] h-[520px]"
+      className="bg-white rounded-2xl shadow-2xl flex items-center justify-center p-8 relative overflow-hidden transition-all duration-600 ease-in-out z-10 w-[480px] h-[700px]"
     >
       {/* Overlay durante animación */}
       {isAnimating && (

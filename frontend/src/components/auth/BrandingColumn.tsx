@@ -7,7 +7,7 @@ interface BrandingColumnProps {
 const BrandingColumn: React.FC<BrandingColumnProps> = ({ isAnimating }) => {
   return (
     <div 
-      className={`hidden lg:flex relative overflow-hidden bg-gradient-to-b from-orange-200 via-orange-100 to-slate-200 rounded-2xl shadow-2xl transition-all duration-600 ease-in-out z-20 w-[480px] h-[520px] ${
+      className={`hidden lg:flex relative overflow-hidden bg-gradient-to-b from-orange-200 via-orange-100 to-slate-200 rounded-2xl shadow-2xl transition-all duration-600 ease-in-out z-20 w-[480px] h-[700px] ${
         isAnimating ? 'transform translate-x-full' : 'transform translate-x-0'
       }`}
     >

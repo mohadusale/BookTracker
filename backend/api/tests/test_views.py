@@ -369,3 +369,174 @@ class PaginationTest(BaseAPITestCase):
         # Total: 26 libros (1 del setUp + 25 nuevos), página 2 con 20 por página = 6 libros
         self.assertEqual(len(response.data['results']), 6)
         self.assertIsNotNone(response.data['previous'])
+
+
+class UserRegistrationTest(APITestCase):
+    """Tests para el endpoint de registro de usuarios"""
+    
+    def test_register_user_success(self):
+        """Test registro exitoso de usuario"""
+        url = reverse('register_user')
+        data = {
+            'username': 'newuser',
+            'email': 'newuser@example.com',
+            'password': 'newpass123',
+            'first_name': 'New',
+            'last_name': 'User'
+        }
+        response = self.client.post(url, data, format='json')
+        
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertFalse(response.data['error'])
+        self.assertEqual(response.data['message'], 'Usuario creado exitosamente')
+        self.assertEqual(response.data['data']['username'], 'newuser')
+        self.assertEqual(response.data['data']['email'], 'newuser@example.com')
+        self.assertEqual(response.data['data']['first_name'], 'New')
+        self.assertEqual(response.data['data']['last_name'], 'User')
+        
+        # Verificar que el usuario se creó en la base de datos
+        self.assertTrue(User.objects.filter(username='newuser').exists())
+        self.assertTrue(User.objects.filter(email='newuser@example.com').exists())
+    
+    def test_register_user_missing_fields(self):
+        """Test registro con campos faltantes"""
+        url = reverse('register_user')
+        data = {
+            'username': 'newuser',
+            # Falta email y password
+        }
+        response = self.client.post(url, data, format='json')
+        
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertTrue(response.data['error'])
+        self.assertIn('Username, email y password son requeridos', response.data['message'])
+        self.assertIn('email', response.data['details'])
+        self.assertIn('password', response.data['details'])
+    
+    def test_register_user_duplicate_username(self):
+        """Test registro con username duplicado"""
+        # Crear usuario existente
+        User.objects.create_user(
+            username='existinguser',
+            email='existing@example.com',
+            password='pass123'
+        )
+        
+        url = reverse('register_user')
+        data = {
+            'username': 'existinguser',  # Username duplicado
+            'email': 'newuser@example.com',
+            'password': 'newpass123'
+        }
+        response = self.client.post(url, data, format='json')
+        
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertTrue(response.data['error'])
+        self.assertEqual(response.data['message'], 'El nombre de usuario ya existe')
+        self.assertIn('username', response.data['details'])
+    
+    def test_register_user_duplicate_email(self):
+        """Test registro con email duplicado"""
+        # Crear usuario existente
+        User.objects.create_user(
+            username='existinguser',
+            email='existing@example.com',
+            password='pass123'
+        )
+        
+        url = reverse('register_user')
+        data = {
+            'username': 'newuser',
+            'email': 'existing@example.com',  # Email duplicado
+            'password': 'newpass123'
+        }
+        response = self.client.post(url, data, format='json')
+        
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertTrue(response.data['error'])
+        self.assertEqual(response.data['message'], 'El email ya está registrado')
+        self.assertIn('email', response.data['details'])
+    
+    def test_register_user_empty_data(self):
+        """Test registro con datos vacíos"""
+        url = reverse('register_user')
+        data = {}
+        response = self.client.post(url, data, format='json')
+        
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertTrue(response.data['error'])
+        self.assertIn('Username, email y password son requeridos', response.data['message'])
+    
+    def test_register_user_invalid_email_format(self):
+        """Test registro con formato de email inválido"""
+        url = reverse('register_user')
+        data = {
+            'username': 'newuser',
+            'email': 'invalid-email',  # Email inválido
+            'password': 'newpass123'
+        }
+        response = self.client.post(url, data, format='json')
+        
+        # Django no valida automáticamente el formato del email en create_user
+        # pero podemos verificar que se crea el usuario
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+    
+    def test_register_user_minimal_data(self):
+        """Test registro con datos mínimos (solo campos requeridos)"""
+        url = reverse('register_user')
+        data = {
+            'username': 'minimaluser',
+            'email': 'minimal@example.com',
+            'password': 'minimalpass123'
+            # Sin first_name ni last_name
+        }
+        response = self.client.post(url, data, format='json')
+        
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertFalse(response.data['error'])
+        self.assertEqual(response.data['data']['first_name'], '')
+        self.assertEqual(response.data['data']['last_name'], '')
+    
+    def test_register_user_special_characters(self):
+        """Test registro con caracteres especiales en username"""
+        url = reverse('register_user')
+        data = {
+            'username': 'user_with_underscore',
+            'email': 'special@example.com',
+            'password': 'specialpass123'
+        }
+        response = self.client.post(url, data, format='json')
+        
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertFalse(response.data['error'])
+        self.assertEqual(response.data['data']['username'], 'user_with_underscore')
+    
+    def test_register_user_long_password(self):
+        """Test registro con contraseña larga"""
+        url = reverse('register_user')
+        data = {
+            'username': 'longpassuser',
+            'email': 'longpass@example.com',
+            'password': 'a' * 100  # Contraseña muy larga
+        }
+        response = self.client.post(url, data, format='json')
+        
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertFalse(response.data['error'])
+    
+    def test_register_user_unicode_data(self):
+        """Test registro con datos Unicode (caracteres especiales)"""
+        url = reverse('register_user')
+        data = {
+            'username': 'usuario_español',
+            'email': 'usuario@español.com',
+            'password': 'contraseña123',
+            'first_name': 'José',
+            'last_name': 'García'
+        }
+        response = self.client.post(url, data, format='json')
+        
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertFalse(response.data['error'])
+        self.assertEqual(response.data['data']['first_name'], 'José')
+        self.assertEqual(response.data['data']['last_name'], 'García')

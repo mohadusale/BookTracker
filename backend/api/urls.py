@@ -10,6 +10,8 @@ from .views import (
     ReadingStatusViewSet,
     BookshelfViewSet,
     CommentViewSet,
+    register_user,
+    custom_login,
 )
 
 # Crear el router
@@ -36,4 +38,6 @@ urlpatterns = [
     path('', include(router.urls)),
     path('', include(book_router.urls)),
     path('', include(review_router.urls)),
+    path('users/register/', register_user, name='register_user'),
+    path('users/login/', custom_login, name='custom_login'),
 ]

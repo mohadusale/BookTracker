@@ -1,11 +1,13 @@
 from rest_framework import viewsets, status
-from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated
+from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated, AllowAny
 from rest_framework.exceptions import MethodNotAllowed
 from rest_framework.response import Response
-from rest_framework.decorators import action
+from rest_framework.decorators import action, api_view, permission_classes
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter, OrderingFilter
 from django.db import IntegrityError
+from django.contrib.auth.models import User
+from django.contrib.auth import authenticate
 from .exceptions import DuplicateEntryException, ResourceNotFoundException
 from .filters import BookFilter, ReviewFilter, CommentFilter, ReadingStatusFilter, BookshelfFilter
 from .models import Author, Book, Genre, Review, ReadingStatus, Bookshelf, Comment, Publisher, BookshelfEntry  
@@ -257,3 +259,148 @@ class CommentViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         review = Review.objects.get(pk=self.kwargs['review_pk'])
         serializer.save(user=self.request.user, review=review)
+
+
+# Endpoint para login personalizado
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def custom_login(request):
+    """
+    Endpoint para login que acepta email o username
+    """
+    try:
+        # Obtener datos del request
+        username_or_email = request.data.get('username')
+        password = request.data.get('password')
+        
+        # Validar datos requeridos
+        if not username_or_email or not password:
+            return Response({
+                'error': True,
+                'message': 'Username/email y password son requeridos',
+                'details': {
+                    'username': ['Este campo es obligatorio'] if not username_or_email else [],
+                    'password': ['Este campo es obligatorio'] if not password else []
+                }
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Intentar autenticar con username primero
+        user = authenticate(username=username_or_email, password=password)
+        
+        # Si no funciona, intentar con email
+        if user is None:
+            try:
+                user_obj = User.objects.get(email=username_or_email)
+                user = authenticate(username=user_obj.username, password=password)
+            except User.DoesNotExist:
+                pass
+        
+        if user is not None:
+            # Generar tokens JWT
+            from rest_framework_simplejwt.tokens import RefreshToken
+            refresh = RefreshToken.for_user(user)
+            
+            return Response({
+                'error': False,
+                'message': 'Login exitoso',
+                'access': str(refresh.access_token),
+                'refresh': str(refresh),
+                'user': {
+                    'id': user.id,
+                    'username': user.username,
+                    'email': user.email,
+                    'first_name': user.first_name,
+                    'last_name': user.last_name,
+                }
+            }, status=status.HTTP_200_OK)
+        else:
+            return Response({
+                'error': True,
+                'message': 'Credenciales inválidas',
+                'details': {
+                    'username': ['Username/email o password incorrectos'],
+                    'password': ['Username/email o password incorrectos']
+                }
+            }, status=status.HTTP_401_UNAUTHORIZED)
+            
+    except Exception as e:
+        return Response({
+            'error': True,
+            'message': 'Error interno del servidor',
+            'details': str(e)
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+# Endpoint para registro de usuarios
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def register_user(request):
+    """
+    Endpoint para registrar nuevos usuarios
+    """
+    try:
+        # Obtener datos del request
+        username = request.data.get('username')
+        email = request.data.get('email')
+        password = request.data.get('password')
+        first_name = request.data.get('first_name', '')
+        last_name = request.data.get('last_name', '')
+        
+        # Validar datos requeridos
+        if not username or not email or not password:
+            return Response({
+                'error': True,
+                'message': 'Username, email y password son requeridos',
+                'details': {
+                    'username': ['Este campo es obligatorio'] if not username else [],
+                    'email': ['Este campo es obligatorio'] if not email else [],
+                    'password': ['Este campo es obligatorio'] if not password else []
+                }
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Verificar si el usuario ya existe
+        if User.objects.filter(username=username).exists():
+            return Response({
+                'error': True,
+                'message': 'El nombre de usuario ya existe',
+                'details': {
+                    'username': ['Este nombre de usuario ya está en uso']
+                }
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        if User.objects.filter(email=email).exists():
+            return Response({
+                'error': True,
+                'message': 'El email ya está registrado',
+                'details': {
+                    'email': ['Este email ya está en uso']
+                }
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Crear el usuario
+        user = User.objects.create_user(
+            username=username,
+            email=email,
+            password=password,
+            first_name=first_name,
+            last_name=last_name
+        )
+        
+        return Response({
+            'error': False,
+            'message': 'Usuario creado exitosamente',
+            'data': {
+                'id': user.id,
+                'username': user.username,
+                'email': user.email,
+                'first_name': user.first_name,
+                'last_name': user.last_name,
+                'date_joined': user.date_joined
+            }
+        }, status=status.HTTP_201_CREATED)
+        
+    except Exception as e:
+        return Response({
+            'error': True,
+            'message': 'Error interno del servidor',
+            'details': str(e)
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

@@ -1,24 +1,82 @@
-import React, { useState } from 'react';
-import { FormIcon, FormInput, FormButton, FormNavigation } from '../ui';
+import React from 'react';
+import { FormIcon, FormInput, FormButton, FormNavigation, LoadingSpinner, ErrorMessage, PasswordInput, PasswordStrength } from '../ui';
+import { useAuth } from '../../contexts/AuthContext';
+import { useForm, type FormValidationConfig } from '../../hooks/useForm';
+import { validators } from '../../hooks/useFormValidation';
 
 interface SignUpFormProps {
   onToggleMode: () => void;
 }
 
 const SignUpForm: React.FC<SignUpFormProps> = ({ onToggleMode }) => {
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const { signUp, isLoading, error, clearError } = useAuth();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // Configuración de validación
+  const validationConfig: FormValidationConfig = {
+    username: {
+      required: true,
+      minLength: 3,
+      maxLength: 30,
+    },
+    name: {
+      required: true,
+      minLength: 2,
+      maxLength: 50,
+    },
+    email: {
+      required: true,
+      email: true,
+    },
+    password: {
+      required: true,
+      custom: validators.passwordStrength,
+    },
+    confirmPassword: {
+      required: true,
+      custom: () => {
+        // Se manejará en el submit
+        return null;
+      },
+    },
+  };
+
+  const { fields, validateForm, clearErrors } = useForm(
+    { username: '', name: '', email: '', password: '', confirmPassword: '' },
+    validationConfig
+  );
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle signup logic here
-    if (password !== confirmPassword) {
-      alert('Las contraseñas no coinciden');
+    clearError();
+    clearErrors();
+    
+    // Validar que las contraseñas coincidan
+    if (fields.password.value !== fields.confirmPassword.value) {
+      // Mostrar error personalizado
       return;
     }
-    console.log('SignUp attempt:', { name, email, password });
+    
+    // Validar todos los campos
+    const formData = { 
+      username: fields.username.value, 
+      name: fields.name.value, 
+      email: fields.email.value, 
+      password: fields.password.value, 
+      confirmPassword: fields.confirmPassword.value 
+    };
+    const isValid = validateForm(formData);
+    
+    if (!isValid) {
+      return;
+    }
+    
+    try {
+      await signUp(formData);
+      // La redirección se manejará en el componente padre
+    } catch (error) {
+      // El error ya se maneja en el contexto
+      console.error('Error en signup:', error);
+    }
   };
 
   return (
@@ -33,41 +91,89 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ onToggleMode }) => {
         Create Your Account!
       </h2>
 
+      {error && (
+        <ErrorMessage 
+          message={error} 
+          onClose={clearError}
+          className="mb-4"
+        />
+      )}
+
       <form onSubmit={handleSubmit} className="space-y-4">
         <FormInput
           type="text"
-          placeholder="Full Name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
+          placeholder="Username"
+          value={fields.username.value}
+          onChange={fields.username.onChange}
+          onBlur={fields.username.onBlur}
           required
+          disabled={isLoading}
+          error={fields.username.error}
+          hasError={fields.username.hasError}
+        />
+
+        <FormInput
+          type="text"
+          placeholder="Full Name"
+          value={fields.name.value}
+          onChange={fields.name.onChange}
+          onBlur={fields.name.onBlur}
+          required
+          disabled={isLoading}
+          error={fields.name.error}
+          hasError={fields.name.hasError}
         />
 
         <FormInput
           type="email"
           placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          value={fields.email.value}
+          onChange={fields.email.onChange}
+          onBlur={fields.email.onBlur}
           required
+          disabled={isLoading}
+          error={fields.email.error}
+          hasError={fields.email.hasError}
         />
 
-        <FormInput
-          type="password"
+        <PasswordInput
           placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
+          value={fields.password.value}
+          onChange={fields.password.onChange}
+          onBlur={fields.password.onBlur}
           required
+          disabled={isLoading}
+          error={fields.password.error}
+          hasError={fields.password.hasError}
+          showStrength={true}
+          strengthComponent={
+            <PasswordStrength 
+              password={fields.password.value} 
+              className="mt-2"
+            />
+          }
         />
 
-        <FormInput
-          type="password"
+        <PasswordInput
           placeholder="Confirm Password"
-          value={confirmPassword}
-          onChange={(e) => setConfirmPassword(e.target.value)}
+          value={fields.confirmPassword.value}
+          onChange={fields.confirmPassword.onChange}
+          onBlur={fields.confirmPassword.onBlur}
           required
+          disabled={isLoading}
+          error={fields.confirmPassword.error}
+          hasError={fields.confirmPassword.hasError}
         />
 
-        <FormButton type="submit">
-          Sign Up
+        <FormButton type="submit" disabled={isLoading}>
+          {isLoading ? (
+            <div className="flex items-center justify-center">
+              <LoadingSpinner size="sm" className="mr-2" />
+              Creando cuenta...
+            </div>
+          ) : (
+            'Sign Up'
+          )}
         </FormButton>
       </form>
 

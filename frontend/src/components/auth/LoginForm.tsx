@@ -1,18 +1,54 @@
 import React, { useState } from 'react';
-import { FormIcon, FormInput, FormButton, FormNavigation } from '../ui';
+import { FormIcon, FormInput, FormButton, FormNavigation, LoadingSpinner, ErrorMessage, PasswordInput } from '../ui';
+import { useAuth } from '../../contexts/AuthContext';
+import { useForm, type FormValidationConfig } from '../../hooks/useForm';
 
 interface LoginFormProps {
   onToggleMode: () => void;
 }
 
 const LoginForm: React.FC<LoginFormProps> = ({ onToggleMode }) => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [rememberMe, setRememberMe] = useState(false);
+  const { login, isLoading, error, clearError } = useAuth();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // Configuración de validación
+  const validationConfig: FormValidationConfig = {
+    username: {
+      required: true,
+    },
+    password: {
+      required: true,
+    },
+  };
+
+  const { fields, validateForm, clearErrors } = useForm(
+    { username: '', password: '' },
+    validationConfig
+  );
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle login logic here
-    console.log('Login attempt:', { email, password });
+    clearError();
+    clearErrors();
+    
+    // Validar todos los campos
+    const formData = { 
+      username: fields.username.value, 
+      password: fields.password.value 
+    };
+    const isValid = validateForm(formData);
+    
+    if (!isValid) {
+      return;
+    }
+    
+    try {
+      await login(formData);
+      // La redirección se manejará en el componente padre
+    } catch (error) {
+      // El error ya se maneja en el contexto
+      console.error('Error en login:', error);
+    }
   };
 
   return (
@@ -27,25 +63,69 @@ const LoginForm: React.FC<LoginFormProps> = ({ onToggleMode }) => {
         Welcome Back!
       </h2>
 
+      {error && (
+        <ErrorMessage 
+          message={error} 
+          onClose={clearError}
+          className="mb-4"
+        />
+      )}
+
       <form onSubmit={handleSubmit} className="space-y-4">
         <FormInput
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          type="text"
+          placeholder="Username o Email"
+          value={fields.username.value}
+          onChange={fields.username.onChange}
+          onBlur={fields.username.onBlur}
           required
+          disabled={isLoading}
+          error={fields.username.error}
+          hasError={fields.username.hasError}
         />
 
-        <FormInput
-          type="password"
+        <PasswordInput
           placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
+          value={fields.password.value}
+          onChange={fields.password.onChange}
+          onBlur={fields.password.onBlur}
           required
+          disabled={isLoading}
+          error={fields.password.error}
+          hasError={fields.password.hasError}
         />
 
-        <FormButton type="submit">
-          Log In
+        {/* Recordarme */}
+        <div className="flex items-center justify-between">
+          <label className="flex items-center">
+            <input
+              type="checkbox"
+              checked={rememberMe}
+              onChange={(e) => setRememberMe(e.target.checked)}
+              className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+              disabled={isLoading}
+            />
+            <span className="ml-2 text-sm text-gray-700 font-medium tracking-wide">Remember me</span>
+          </label>
+          
+          <button
+            type="button"
+            className="text-sm text-blue-600 hover:text-blue-500 focus:outline-none focus:underline font-medium tracking-wide transition-colors duration-200"
+            disabled={isLoading}
+          >
+            Forgot password?
+          </button>
+        </div>
+
+        <FormButton type="submit" disabled={isLoading}>
+          {isLoading ? (
+            <div className="flex items-center justify-center">
+              <LoadingSpinner size="sm" className="mr-2" />
+              Iniciando sesión...
+            </div>
+          ) : (
+            'Log In'
+          )}
         </FormButton>
       </form>
 

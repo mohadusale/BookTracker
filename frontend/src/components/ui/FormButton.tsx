@@ -2,12 +2,13 @@ import React from 'react';
 import { colors } from '../../config/colors';
 
 interface FormButtonProps {
-  type: 'submit' | 'button';
+  type: 'submit' | 'button' | 'reset';
   children: React.ReactNode;
   onClick?: () => void;
+  disabled?: boolean;
 }
 
-const FormButton: React.FC<FormButtonProps> = ({ type, children, onClick }) => {
+const FormButton: React.FC<FormButtonProps> = ({ type, children, onClick, disabled = false }) => {
   const handleMouseEnter = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.currentTarget.style.backgroundColor = colors.primary.hover;
   };
@@ -20,10 +21,13 @@ const FormButton: React.FC<FormButtonProps> = ({ type, children, onClick }) => {
     <button
       type={type}
       onClick={onClick}
-      className="w-full text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200 shadow-lg"
-      style={{ backgroundColor: colors.primary.main }}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
+      disabled={disabled}
+      className={`w-full text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200 shadow-lg ${
+        disabled ? 'opacity-50 cursor-not-allowed' : ''
+      }`}
+      style={{ backgroundColor: disabled ? '#9CA3AF' : colors.primary.main }}
+      onMouseEnter={disabled ? undefined : handleMouseEnter}
+      onMouseLeave={disabled ? undefined : handleMouseLeave}
     >
       {children}
     </button>

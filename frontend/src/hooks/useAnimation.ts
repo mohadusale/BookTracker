@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { ANIMATION_DURATIONS } from '../config/constants';
 
 export const useAnimation = () => {
   const [isSignUp, setIsSignUp] = useState(false);
@@ -14,8 +15,8 @@ export const useAnimation = () => {
       setIsSignUp(!isSignUp);
       setTimeout(() => {
         setIsAnimating(false);
-      }, 300);
-    }, 300);
+      }, ANIMATION_DURATIONS.NORMAL);
+    }, ANIMATION_DURATIONS.NORMAL);
   };
 
   return {
