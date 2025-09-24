@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Card, CardContent } from '../../ui';
+import { Card } from '../../ui';
 import { Button } from '../../ui';
 import { Input } from '../../ui';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../ui';

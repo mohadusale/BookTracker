@@ -1,5 +1,3 @@
-import React from 'react';
-import { Button } from '../../ui';
 import { BookOpen, Archive } from 'lucide-react';
 import { cn } from '../../../utils/cn';
 
