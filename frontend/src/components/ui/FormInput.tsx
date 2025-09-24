@@ -43,8 +43,9 @@ const FormInput: React.FC<FormInputProps> = ({
         onBlur={onBlur}
         className={inputClasses}
         style={!hasError ? { '--tw-ring-color': colors.primary.ring } as React.CSSProperties : undefined}
-        required={required}
+        required={false}
         disabled={disabled}
+        noValidate
       />
       {error && (
         <p className="mt-1 text-sm text-error-600">

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { FormIcon, FormInput, FormButton, FormNavigation, LoadingSpinner, ErrorMessage, PasswordInput } from '../ui';
-import { useAuth } from '../../contexts/AuthContext';
+import { useAuth } from '../../stores';
 import { useForm, type FormValidationConfig } from '../../hooks/useForm';
 
 interface LoginFormProps {
@@ -84,7 +84,6 @@ const LoginForm: React.FC<LoginFormProps> = ({ onToggleMode }) => {
           value={fields.username.value}
           onChange={fields.username.onChange}
           onBlur={fields.username.onBlur}
-          required
           disabled={isLoading}
           error={fields.username.error}
           hasError={fields.username.hasError}
@@ -95,7 +94,6 @@ const LoginForm: React.FC<LoginFormProps> = ({ onToggleMode }) => {
           value={fields.password.value}
           onChange={fields.password.onChange}
           onBlur={fields.password.onBlur}
-          required
           disabled={isLoading}
           error={fields.password.error}
           hasError={fields.password.hasError}

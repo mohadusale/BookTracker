@@ -8,18 +8,71 @@ export default {
     extend: {
       colors: {
         primary: {
-          50: '#eff6ff',
-          100: '#dbeafe',
-          200: '#bfdbfe',
-          300: '#93c5fd',
-          400: '#60a5fa',
-          500: '#3b82f6',
-          600: '#2563eb',
-          700: '#1d4ed8',
-          800: '#1e40af',
-          900: '#1e3a8a',
-          950: '#172554',
+          50: '#F2CCB6',    // Primario suave
+          100: '#F2CCB6',
+          200: '#E5A68A',
+          300: '#E07A5F',   // Primario main
+          400: '#D16B4F',
+          500: '#E07A5F',   // Main
+          600: '#C65A3F',
+          700: '#B54A2F',
+          800: '#A43A1F',
+          900: '#932A0F',
         },
+        // New design system colors
+        background: 'hsl(var(--background))',
+        foreground: 'hsl(var(--foreground))',
+        card: {
+          DEFAULT: 'hsl(var(--card))',
+          foreground: 'hsl(var(--card-foreground))',
+        },
+        popover: {
+          DEFAULT: 'hsl(var(--popover))',
+          foreground: 'hsl(var(--popover-foreground))',
+        },
+        muted: {
+          DEFAULT: 'hsl(var(--muted))',
+          foreground: 'hsl(var(--muted-foreground))',
+        },
+        accent: {
+          DEFAULT: 'hsl(var(--accent))',
+          foreground: 'hsl(var(--accent-foreground))',
+        },
+        destructive: {
+          DEFAULT: 'hsl(var(--destructive))',
+          foreground: 'hsl(var(--destructive-foreground))',
+        },
+        border: 'hsl(var(--border))',
+        input: 'hsl(var(--input))',
+        ring: 'hsl(var(--ring))',
+        chart: {
+          '1': 'hsl(var(--chart-1))',
+          '2': 'hsl(var(--chart-2))',
+          '3': 'hsl(var(--chart-3))',
+          '4': 'hsl(var(--chart-4))',
+          '5': 'hsl(var(--chart-5))',
+        },
+        secondary: {
+          50: '#A8C4B0',    // Secundario claro
+          100: '#A8C4B0',
+          200: '#8FB39A',
+          300: '#81B29A',   // Secundario main
+          400: '#6B9B87',
+          500: '#81B29A',   // Main
+          600: '#5A8A6B',
+          700: '#4A7A5B',
+          800: '#3A6A4B',
+          900: '#2A5A3B',
+        },
+        background: {
+          primary: '#FDFBF7',   // Fondo principal
+          secondary: '#F4F1EC'  // Fondo secundario
+        },
+        text: {
+          primary: '#3A3531',   // Texto principal
+          secondary: '#8A817C'  // Texto secundario
+        },
+        'primary-soft': '#F2CCB6',  // Primario suave
         secondary: {
           50: '#f8fafc',
           100: '#f1f5f9',

@@ -1,7 +1,7 @@
 import React from 'react';
 import { useAnimation } from '../hooks/useAnimation';
 import { BrandingColumn, FormColumn } from '../components/auth';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../stores';
 import DashboardPage from './DashboardPage';
 
 const LoginPage: React.FC = () => {

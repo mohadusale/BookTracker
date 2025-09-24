@@ -77,7 +77,10 @@ export const useForm = <T extends Record<string, string>>(
   }, [values]);
 
   const validateFormValues = useCallback((formValues: Record<string, string>) => {
-    return validateForm(formValues);
+    // Forzar validación de todos los campos
+    const isValid = validateForm(formValues);
+    
+    return isValid;
   }, [validateForm]);
 
   return {

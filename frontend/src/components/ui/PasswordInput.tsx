@@ -48,8 +48,9 @@ const PasswordInput: React.FC<PasswordInputProps> = ({
           onBlur={onBlur}
           className={inputClasses}
           style={!hasError ? { '--tw-ring-color': colors.primary.ring } as React.CSSProperties : undefined}
-          required={required}
+          required={false}
           disabled={disabled}
+          noValidate
         />
         
         <button

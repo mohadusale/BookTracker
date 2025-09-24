@@ -1,28 +1,37 @@
 export const colors = {
+  // Paleta "Biblioteca Iluminada"
   primary: {
-    main: '#B8926A',
-    hover: '#A67F5A',
-    ring: '#B8926A',
-    light: '#D4B896',
-    dark: '#8B6F47'
+    main: '#E07A5F',        // Terracota vibrante
+    soft: '#F2CCB6',        // Primario suave
+    hover: '#D16B4F',       // Hover del primario
+    light: '#F2CCB6',       // Versión clara
+    dark: '#C65A3F'         // Versión oscura
   },
   secondary: {
-    main: '#6B7280',
-    hover: '#4B5563',
-    light: '#9CA3AF',
-    dark: '#374151'
+    main: '#81B29A',        // Verde salvia
+    hover: '#6B9B87',       // Hover del secundario
+    light: '#A8C4B0',       // Versión clara
+    dark: '#5A8A6B'         // Versión oscura
+  },
+  background: {
+    primary: '#FDFBF7',     // Fondo principal (blanco roto)
+    secondary: '#F4F1EC'     // Fondo secundario (crema)
+  },
+  text: {
+    primary: '#3A3531',     // Texto principal (marrón oscuro)
+    secondary: '#8A817C'     // Texto secundario (gris cálido)
   },
   success: {
-    main: '#10B981',
-    hover: '#059669',
-    light: '#34D399',
-    dark: '#047857'
+    main: '#3D9970',        // Verde claro y positivo
+    hover: '#2D7A5A',
+    light: '#5BB08A',
+    dark: '#1F5F3F'
   },
   error: {
-    main: '#EF4444',
-    hover: '#DC2626',
-    light: '#F87171',
-    dark: '#B91C1C'
+    main: '#D62828',        // Rojo fuerte y claro
+    hover: '#B91C1C',
+    light: '#E55A5A',
+    dark: '#A01E1E'
   },
   warning: {
     main: '#F59E0B',
@@ -37,8 +46,8 @@ export const colors = {
     dark: '#1D4ED8'
   },
   neutral: {
-    50: '#F9FAFB',
-    100: '#F3F4F6',
+    50: '#FDFBF7',          // Usando bg-primary
+    100: '#F4F1EC',         // Usando bg-secondary
     200: '#E5E7EB',
     300: '#D1D5DB',
     400: '#9CA3AF',

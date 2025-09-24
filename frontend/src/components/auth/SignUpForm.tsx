@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { FormIcon, FormInput, FormButton, FormNavigation, LoadingSpinner, ErrorMessage, PasswordInput, PasswordStrength } from '../ui';
-import { useAuth } from '../../contexts/AuthContext';
+import { useAuth } from '../../stores';
 import { useForm, type FormValidationConfig } from '../../hooks/useForm';
 import { validators } from '../../hooks/useFormValidation';
 
@@ -103,7 +103,6 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ onToggleMode }) => {
           value={fields.username.value}
           onChange={fields.username.onChange}
           onBlur={fields.username.onBlur}
-          required
           disabled={isLoading}
           error={fields.username.error}
           hasError={fields.username.hasError}
@@ -115,7 +114,6 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ onToggleMode }) => {
           value={fields.name.value}
           onChange={fields.name.onChange}
           onBlur={fields.name.onBlur}
-          required
           disabled={isLoading}
           error={fields.name.error}
           hasError={fields.name.hasError}
@@ -127,7 +125,6 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ onToggleMode }) => {
           value={fields.email.value}
           onChange={fields.email.onChange}
           onBlur={fields.email.onBlur}
-          required
           disabled={isLoading}
           error={fields.email.error}
           hasError={fields.email.hasError}
@@ -138,7 +135,6 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ onToggleMode }) => {
           value={fields.password.value}
           onChange={fields.password.onChange}
           onBlur={fields.password.onBlur}
-          required
           disabled={isLoading}
           error={fields.password.error}
           hasError={fields.password.hasError}
@@ -156,7 +152,6 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ onToggleMode }) => {
           value={fields.confirmPassword.value}
           onChange={fields.confirmPassword.onChange}
           onBlur={fields.confirmPassword.onBlur}
-          required
           disabled={isLoading}
           error={fields.confirmPassword.error}
           hasError={fields.confirmPassword.hasError}

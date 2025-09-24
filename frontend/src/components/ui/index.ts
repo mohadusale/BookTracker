@@ -6,3 +6,11 @@ export { default as LoadingSpinner } from './LoadingSpinner';
 export { default as ErrorMessage } from './ErrorMessage';
 export { default as PasswordInput } from './PasswordInput';
 export { default as PasswordStrength } from './PasswordStrength';
+
+export { Card, CardHeader, CardTitle, CardContent } from './Card';
+export { Button } from './Button';
+export { Input } from './Input';
+export { Badge } from './Badge';
+export { Avatar, AvatarImage, AvatarFallback } from './Avatar';
+export { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from './Select';
+export { ImageWithFallback } from './ImageWithFallback';
