@@ -14,3 +14,6 @@ export { Badge } from './Badge';
 export { Avatar, AvatarImage, AvatarFallback } from './Avatar';
 export { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from './Select';
 export { ImageWithFallback } from './ImageWithFallback';
+export { StarRating } from './StarRating';
+export { InteractiveStarRating } from './InteractiveStarRating';
+export { StarRatingInput } from './StarRatingInput';

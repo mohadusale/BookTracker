@@ -162,7 +162,7 @@ class ReadingStatusWriteSerializerTest(BaseTestCase):
         """Test serializer con datos válidos"""
         data = {
             'book': self.book.id,
-            'status': 'R',
+            'status': 'C',  # Cambiado a 'C' para permitir rating
             'rating': 4,
             'started_at': '2024-01-01',
             'finished_at': '2024-01-15'

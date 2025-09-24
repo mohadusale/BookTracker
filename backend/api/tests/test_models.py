@@ -187,6 +187,39 @@ class ReadingStatusModelTest(BaseTestCase):
         )
         with self.assertRaises(ValidationError):
             status.clean()
+    
+    def test_reading_status_rating_validation(self):
+        """Test validación de rating - 0.5 es el mínimo permitido"""
+        # Test rating válido (0.5)
+        status = ReadingStatus(
+            user=self.user,
+            book=self.book,
+            status='C',
+            rating=0.5,
+            finished_at=date.today()
+        )
+        status.clean()  # No debe lanzar excepción
+        
+        # Test rating inválido (0)
+        status_invalid = ReadingStatus(
+            user=self.user,
+            book=self.book,
+            status='C',
+            rating=0,
+            finished_at=date.today()
+        )
+        with self.assertRaises(ValidationError):
+            status_invalid.clean()
+        
+        # Test rating válido (5)
+        status_max = ReadingStatus(
+            user=self.user,
+            book=self.book,
+            status='C',
+            rating=5,
+            finished_at=date.today()
+        )
+        status_max.clean()  # No debe lanzar excepción
 
 
 class ReviewModelTest(BaseTestCase):

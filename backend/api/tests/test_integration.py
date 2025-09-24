@@ -93,9 +93,10 @@ class CompleteWorkflowTest(BaseAPITestCase):
         # 7. Crear estado de lectura
         reading_status_data = {
             'book': book_id,
-            'status': 'R',
+            'status': 'C',  # Cambiado a 'C' para permitir rating
             'rating': 5,
-            'started_at': '2024-01-01'
+            'started_at': '2024-01-01',
+            'finished_at': '2024-01-15'  # Agregado finished_at para estado completado
         }
         reading_status_response = self.client.post(reverse('reading-status-list'), reading_status_data, format='json')
         self.assertEqual(reading_status_response.status_code, status.HTTP_201_CREATED)

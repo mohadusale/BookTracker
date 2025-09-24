@@ -158,11 +158,13 @@ class ReadingStatus(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='reading_statuses')
     book = models.ForeignKey(Book, on_delete=models.CASCADE, related_name='reading_statuses')
     status = models.CharField(max_length=1, choices=STATUS_CHOICES, help_text="Estado de lectura")
-    rating = models.PositiveIntegerField(
+    rating = models.DecimalField(
+        max_digits=2,
+        decimal_places=1,
         null=True, 
         blank=True,
-        validators=[MinValueValidator(1), MaxValueValidator(5)],
-        help_text="Calificación del 1 al 5"
+        validators=[MinValueValidator(0), MaxValueValidator(5)],
+        help_text="Calificación del 0 al 5 (incrementos de 0.5)"
     ) 
     started_at = models.DateField(null=True, blank=True, help_text="Fecha de inicio de lectura")
     finished_at = models.DateField(null=True, blank=True, help_text="Fecha de finalización de lectura")
@@ -177,6 +179,14 @@ class ReadingStatus(models.Model):
         Validaciones de negocio para el modelo ReadingStatus
         """
         super().clean()
+        
+        # Validar rating - solo valores específicos permitidos (0.5 es el mínimo)
+        if self.rating is not None:
+            valid_ratings = [0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5]
+            if float(self.rating) not in valid_ratings:
+                raise ValidationError({
+                    'rating': f'La calificación debe ser uno de los siguientes valores: {valid_ratings} (0.5 es la calificación mínima)'
+                })
         
         # Validar fechas
         if self.started_at and self.finished_at:
@@ -195,6 +205,12 @@ class ReadingStatus(models.Model):
         if self.finished_at and self.finished_at > today:
             raise ValidationError({
                 'finished_at': 'La fecha de finalización no puede ser futura.'
+            })
+        
+        # Validar que solo los libros completados puedan tener calificación
+        if self.rating is not None and self.status != 'C':
+            raise ValidationError({
+                'status': 'Solo los libros completados pueden tener calificación. El estado debe ser "Finalizado" para poder calificar.'
             })
         
         # Validar lógica de estado

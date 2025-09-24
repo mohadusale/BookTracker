@@ -309,9 +309,10 @@ class ReadingStatusAPITest(BaseAPITestCase):
         url = reverse('reading-status-list')
         data = {
             'book': self.book.id,
-            'status': 'R',
+            'status': 'C',  # Cambiado a 'C' para permitir rating
             'rating': 4,
-            'started_at': '2024-01-01'
+            'started_at': '2024-01-01',
+            'finished_at': '2024-01-15'  # Agregado finished_at para estado completado
         }
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)

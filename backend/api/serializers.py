@@ -166,17 +166,29 @@ class ReviewWriteSerializer(serializers.ModelSerializer):
 # ReadingStatus Serializers
 class ReadingStatusReadSerializer(serializers.ModelSerializer):
     user = serializers.StringRelatedField()
-    book = serializers.StringRelatedField()
+    book_detail = BookReadSerializer(source='book', read_only=True)
 
     class Meta:
         model = ReadingStatus
-        fields = '__all__'
+        fields = ['id', 'user', 'book', 'book_detail', 'status', 'rating', 'started_at', 'finished_at']
 
 class ReadingStatusWriteSerializer(serializers.ModelSerializer):
     class Meta:
         model = ReadingStatus
         fields = ['book', 'status', 'rating', 'started_at', 'finished_at']
     
+    def validate_rating(self, value):
+        """
+        Valida que el rating sea uno de los valores permitidos (0.5 es el mínimo)
+        """
+        if value is not None:
+            valid_ratings = [0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5]
+            if float(value) not in valid_ratings:
+                raise serializers.ValidationError(
+                    f"La calificación debe ser uno de los siguientes valores: {valid_ratings} (0.5 es la calificación mínima)"
+                )
+        return value
+
     def validate(self, data):
         """
         Valida la lógica de negocio del ReadingStatus
@@ -184,6 +196,13 @@ class ReadingStatusWriteSerializer(serializers.ModelSerializer):
         started_at = data.get('started_at')
         finished_at = data.get('finished_at')
         status = data.get('status')
+        rating = data.get('rating')
+        
+        # Si hay calificación, el estado debe ser 'Completed'
+        if rating is not None and status != 'C':
+            raise serializers.ValidationError(
+                "Solo los libros completados pueden tener calificación. El estado debe ser 'Finalizado' para poder calificar."
+            )
         
         # Si hay fecha de finalización, debe ser posterior a la de inicio
         if started_at and finished_at and started_at >= finished_at:
