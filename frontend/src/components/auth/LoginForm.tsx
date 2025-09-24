@@ -65,7 +65,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onToggleMode }) => {
         </svg>
       </FormIcon>
 
-      <h2 className="text-2xl font-bold text-gray-900 text-center mb-6">
+      <h2 className="text-2xl font-bold text-neutral-900 text-center mb-6">
         Welcome Back!
       </h2>
 
@@ -108,15 +108,15 @@ const LoginForm: React.FC<LoginFormProps> = ({ onToggleMode }) => {
               type="checkbox"
               checked={rememberMe}
               onChange={(e) => setRememberMe(e.target.checked)}
-              className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+              className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-neutral-300 rounded"
               disabled={isLoading}
             />
-            <span className="ml-2 text-sm text-gray-700 font-medium tracking-wide">Remember me</span>
+            <span className="ml-2 text-sm text-neutral-700 font-medium tracking-wide">Remember me</span>
           </label>
           
           <button
             type="button"
-            className="text-sm text-blue-600 hover:text-blue-500 focus:outline-none focus:underline font-medium tracking-wide transition-colors duration-200"
+            className="text-sm text-primary-600 hover:text-primary-500 focus:outline-none focus:underline font-medium tracking-wide transition-colors duration-200"
             disabled={isLoading}
           >
             Forgot password?

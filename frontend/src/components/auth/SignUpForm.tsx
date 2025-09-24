@@ -33,10 +33,7 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ onToggleMode }) => {
     },
     confirmPassword: {
       required: true,
-      custom: () => {
-        // Se manejará en el submit
-        return null;
-      },
+      custom: validators.passwordMatch,
     },
   };
 
@@ -56,13 +53,7 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ onToggleMode }) => {
     clearError();
     clearErrors();
     
-    // Validar que las contraseñas coincidan
-    if (fields.password.value !== fields.confirmPassword.value) {
-      // Mostrar error personalizado
-      return;
-    }
-    
-    // Validar todos los campos
+    // Validar todos los campos (incluyendo la validación de contraseñas coincidentes)
     const formData = { 
       username: fields.username.value, 
       name: fields.name.value, 
@@ -93,7 +84,7 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ onToggleMode }) => {
         </svg>
       </FormIcon>
 
-      <h2 className="text-2xl font-bold text-gray-900 text-center mb-6">
+      <h2 className="text-2xl font-bold text-neutral-900 text-center mb-6">
         Create Your Account!
       </h2>
 

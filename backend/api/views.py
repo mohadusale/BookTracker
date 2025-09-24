@@ -42,6 +42,10 @@ class BookViewSet(viewsets.ModelViewSet):
     ordering_fields = ['title', 'publication_date', 'pages', 'created_at']
     ordering = ['title']  # Ordenamiento por defecto
     
+    def get_queryset(self):
+        """Optimizar consultas con select_related y prefetch_related"""
+        return Book.objects.select_related('publisher').prefetch_related('authors', 'genres')
+    
     # Usamos este método para elegir el serizalizador dinámicamente
     def get_serializer_class(self):
         # Si la acción es list (ver la lista) o retrieve (ver un solo libro)
@@ -71,11 +75,11 @@ class ReviewViewSet(viewsets.ModelViewSet):
         """
         # Si la URL contiene un 'book_pk', filtramos por el libro
         if 'book_pk' in self.kwargs:
-            return Review.objects.filter(book__id=self.kwargs['book_pk'])
+            return Review.objects.filter(book__id=self.kwargs['book_pk']).select_related('book', 'user', 'book__publisher').prefetch_related('book__authors', 'book__genres')
         
         # Si no, devolvemos las reseñas del usuario actual
         if self.request.user.is_authenticated:
-            return Review.objects.filter(user=self.request.user)
+            return Review.objects.filter(user=self.request.user).select_related('book', 'user', 'book__publisher').prefetch_related('book__authors', 'book__genres')
         
         # Si no está autenticado y no pide por libro, no devolvemos nada
         return Review.objects.none()
@@ -118,7 +122,7 @@ class ReadingStatusViewSet(viewsets.ModelViewSet):
 
     # Un usuario solo puede ver sus propios ReadingStatus
     def get_queryset(self):
-        return ReadingStatus.objects.filter(user=self.request.user)
+        return ReadingStatus.objects.filter(user=self.request.user).select_related('book', 'user', 'book__publisher').prefetch_related('book__authors', 'book__genres')
 
     def get_serializer_class(self):
         if self.action in ['list', 'retrieve']:
@@ -140,7 +144,7 @@ class BookshelfViewSet(viewsets.ModelViewSet):
 
     # Un usuario solo puede ver sus estanterías
     def get_queryset(self):
-        return Bookshelf.objects.filter(user=self.request.user)
+        return Bookshelf.objects.filter(user=self.request.user).select_related('user').prefetch_related('entries__book', 'entries__book__publisher', 'entries__book__authors')
     
     def get_serializer_class(self):
         if self.action in ['list', 'retrieve']:
@@ -227,7 +231,7 @@ class BookshelfViewSet(viewsets.ModelViewSet):
     def books(self, request, pk=None):
         """Obtener todos los libros de una estantería"""
         bookshelf = self.get_object()
-        books = Book.objects.filter(entries__bookshelf=bookshelf)
+        books = Book.objects.filter(entries__bookshelf=bookshelf).select_related('publisher').prefetch_related('authors', 'genres')
         serializer = BookReadSerializer(books, many=True)
         return Response(serializer.data)
 
@@ -244,7 +248,7 @@ class CommentViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         # Filtra los comentarios por el 'review_pk' de la URL
         # Ahora incluye tanto comentarios principales como respuestas
-        return Comment.objects.filter(review__id=self.kwargs['review_pk'])
+        return Comment.objects.filter(review__id=self.kwargs['review_pk']).select_related('user', 'review', 'review__book', 'parent_comment').prefetch_related('review__book__authors')
     
     def get_serializer_class(self):
         if self.action in ['list', 'retrieve']:
@@ -396,7 +400,7 @@ def register_user(request):
                 'error': True,
                 'message': 'El nombre de usuario ya existe',
                 'details': {
-                    'Este nombre de usuario ya está en uso'
+                    'username': ['Este nombre de usuario ya está en uso']
                 }
             }, status=status.HTTP_400_BAD_REQUEST)
         
@@ -405,7 +409,7 @@ def register_user(request):
                 'error': True,
                 'message': 'El email ya está registrado',
                 'details': {
-                    'Este email ya está en uso'
+                    'email': ['Este email ya está en uso']
                 }
             }, status=status.HTTP_400_BAD_REQUEST)
         

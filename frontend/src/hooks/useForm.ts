@@ -40,17 +40,19 @@ export const useForm = <T extends Record<string, string>>(
       value: values[fieldName] || '',
       onChange: (e: React.ChangeEvent<HTMLInputElement>) => {
         const newValue = e.target.value;
-        setValues(prev => ({ ...prev, [fieldName]: newValue }));
-        handleFieldChange(fieldName as string, newValue);
+        const updatedValues = { ...values, [fieldName]: newValue };
+        setValues(updatedValues);
+        handleFieldChange(fieldName as string, newValue, updatedValues);
       },
       onBlur: (e: React.FocusEvent<HTMLInputElement>) => {
-        handleFieldBlur(fieldName as string, e.target.value);
+        handleFieldBlur(fieldName as string, e.target.value, values);
       },
       error: getFieldError(fieldName as string),
       hasError: hasFieldError(fieldName as string),
       setValue: (value: string) => {
-        setValues(prev => ({ ...prev, [fieldName]: value }));
-        handleFieldChange(fieldName as string, value);
+        const updatedValues = { ...values, [fieldName]: value };
+        setValues(updatedValues);
+        handleFieldChange(fieldName as string, value, updatedValues);
       }
     };
   }, [values, handleFieldChange, handleFieldBlur, getFieldError, hasFieldError]);
@@ -65,9 +67,10 @@ export const useForm = <T extends Record<string, string>>(
   }, [clearValidationErrors]);
 
   const setFieldValue = useCallback((fieldName: string, value: string) => {
-    setValues(prev => ({ ...prev, [fieldName]: value }));
-    handleFieldChange(fieldName, value);
-  }, [handleFieldChange]);
+    const updatedValues = { ...values, [fieldName]: value };
+    setValues(updatedValues);
+    handleFieldChange(fieldName, value, updatedValues);
+  }, [handleFieldChange, values]);
 
   const getFieldValue = useCallback((fieldName: string) => {
     return values[fieldName as keyof T] || '';

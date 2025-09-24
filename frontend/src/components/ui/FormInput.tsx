@@ -27,10 +27,10 @@ const FormInput: React.FC<FormInputProps> = ({
   const inputClasses = `
     w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent transition-colors
     ${hasError 
-      ? 'border-red-500 focus:ring-red-500 focus:border-red-500' 
-      : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'
+      ? 'border-error-500 focus:ring-error-500 focus:border-error-500' 
+      : 'border-neutral-300 focus:ring-primary-500 focus:border-primary-500'
     }
-    ${disabled ? 'bg-gray-100 cursor-not-allowed' : 'bg-white'}
+    ${disabled ? 'bg-neutral-100 cursor-not-allowed' : 'bg-white'}
   `.trim();
 
   return (
@@ -47,7 +47,7 @@ const FormInput: React.FC<FormInputProps> = ({
         disabled={disabled}
       />
       {error && (
-        <p className="mt-1 text-sm text-red-600">
+        <p className="mt-1 text-sm text-error-600">
           {error}
         </p>
       )}

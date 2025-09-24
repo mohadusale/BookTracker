@@ -37,7 +37,7 @@ class ErrorBoundary extends Component<Props, State> {
       }
 
       return (
-        <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
+        <div className="min-h-screen bg-secondary-100 flex items-center justify-center p-4">
           <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-6">
             <div className="flex items-center mb-4">
               <div 
@@ -60,27 +60,27 @@ class ErrorBoundary extends Component<Props, State> {
                 </svg>
               </div>
               <div>
-                <h2 className="text-xl font-semibold text-gray-900">
+                <h2 className="text-xl font-semibold text-neutral-900">
                   ¡Oops! Algo salió mal
                 </h2>
-                <p className="text-gray-600">
+                <p className="text-neutral-600">
                   Ha ocurrido un error inesperado
                 </p>
               </div>
             </div>
 
             <div className="mb-6">
-              <p className="text-gray-700 mb-4">
+              <p className="text-neutral-700 mb-4">
                 Lo sentimos, pero algo no funcionó correctamente. 
                 Por favor, intenta recargar la página.
               </p>
               
               {import.meta.env.DEV && this.state.error && (
                 <details className="mb-4">
-                  <summary className="cursor-pointer text-sm font-medium text-gray-600 hover:text-gray-800">
+                  <summary className="cursor-pointer text-sm font-medium text-neutral-600 hover:text-neutral-800">
                     Detalles del error (desarrollo)
                   </summary>
-                  <div className="mt-2 p-3 bg-gray-100 rounded text-xs font-mono text-gray-800 overflow-auto">
+                  <div className="mt-2 p-3 bg-neutral-100 rounded text-xs font-mono text-neutral-800 overflow-auto">
                     <div className="mb-2">
                       <strong>Error:</strong> {this.state.error.message}
                     </div>
@@ -114,7 +114,7 @@ class ErrorBoundary extends Component<Props, State> {
               
               <button
                 onClick={() => this.setState({ hasError: false, error: undefined, errorInfo: undefined })}
-                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors"
+                className="flex-1 px-4 py-2 border border-neutral-300 text-neutral-700 font-medium rounded-lg hover:bg-neutral-50 transition-colors"
               >
                 Intentar de nuevo
               </button>

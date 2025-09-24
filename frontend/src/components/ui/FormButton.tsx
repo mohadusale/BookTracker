@@ -22,10 +22,11 @@ const FormButton: React.FC<FormButtonProps> = ({ type, children, onClick, disabl
       type={type}
       onClick={onClick}
       disabled={disabled}
-      className={`w-full text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200 shadow-lg ${
-        disabled ? 'opacity-50 cursor-not-allowed' : ''
+      className={`w-full text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200 shadow-soft ${
+        disabled 
+          ? 'bg-neutral-400 opacity-50 cursor-not-allowed' 
+          : 'bg-primary-600 hover:bg-primary-700 focus:ring-2 focus:ring-primary-500 focus:ring-offset-2'
       }`}
-      style={{ backgroundColor: disabled ? '#9CA3AF' : colors.primary.main }}
       onMouseEnter={disabled ? undefined : handleMouseEnter}
       onMouseLeave={disabled ? undefined : handleMouseLeave}
     >

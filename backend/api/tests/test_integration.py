@@ -47,9 +47,13 @@ class CompleteWorkflowTest(BaseAPITestCase):
         genre_id = genre_response.data['id']
         
         # 4. Crear libro
+        import uuid
+        # Generar ISBN válido (13 dígitos)
+        unique_suffix = str(uuid.uuid4().int)[:5]  # Solo 5 dígitos para que el total sea 13
+        unique_isbn = f'978-84-376-{unique_suffix.zfill(5)}'
         book_data = {
             'title': 'Don Quijote de la Mancha',
-            'isbn': '978-84-376-0494-8',  # Cambiar ISBN para evitar duplicado
+            'isbn': unique_isbn,  # ISBN único generado dinámicamente
             'synopsis': 'Las aventuras de un hidalgo manchego',
             'publication_date': '1605-01-01',
             'pages': 863,
@@ -159,9 +163,13 @@ class SearchAndFilterIntegrationTest(BaseAPITestCase):
         self.genre2 = Genre.objects.create(name='Realismo Mágico')
         
         from datetime import date
+        import uuid
+        # Generar ISBN válido (13 dígitos)
+        unique_suffix_2 = str(uuid.uuid4().int)[:5]  # Solo 5 dígitos para que el total sea 13
+        unique_isbn_2 = f'978-84-376-{unique_suffix_2.zfill(5)}'
         self.book2 = Book.objects.create(
             title='Cien años de soledad',
-            isbn='978-84-376-0495-4',
+            isbn=unique_isbn_2,  # ISBN único generado dinámicamente
             synopsis='La historia de la familia Buendía',
             publication_date=date(1967, 6, 5),
             pages=471,
@@ -266,10 +274,13 @@ class PerformanceIntegrationTest(BaseAPITestCase):
     def test_large_dataset_pagination(self):
         """Test paginación con dataset grande"""
         # Crear muchos libros
+        import uuid
         for i in range(100):
+            # Generar ISBN válido (13 dígitos) usando el índice para garantizar unicidad
+            unique_isbn = f'978-0-123-{str(i).zfill(5)}'
             Book.objects.create(
                 title=f'Book {i}',
-                isbn=f'978-0-123-4567{i:03d}',
+                isbn=unique_isbn,
                 publisher=self.publisher
             )
         
@@ -285,10 +296,13 @@ class PerformanceIntegrationTest(BaseAPITestCase):
     def test_search_performance(self):
         """Test rendimiento de búsqueda"""
         # Crear muchos libros con títulos similares
+        import uuid
         for i in range(50):
+            # Generar ISBN válido (13 dígitos) usando el índice + offset para garantizar unicidad
+            unique_isbn = f'978-0-123-{str(1000 + i).zfill(5)}'  # Offset de 1000 para evitar conflictos
             Book.objects.create(
                 title=f'Test Book {i}',
-                isbn=f'978-0-123-4567{i:03d}',
+                isbn=unique_isbn,
                 publisher=self.publisher
             )
         

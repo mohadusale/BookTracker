@@ -6,7 +6,7 @@ export interface ValidationRule {
   minLength?: number;
   maxLength?: number;
   pattern?: RegExp;
-  custom?: (value: string) => string | null;
+  custom?: (value: string, allValues?: { [key: string]: string }) => string | null;
 }
 
 export interface FieldError {
@@ -91,13 +91,25 @@ export const validators = {
     
     return null;
   },
+
+  passwordMatch: (value: string, allValues?: { [key: string]: string }): string | null => {
+    if (!value) return null;
+    
+    // Buscar el campo 'password' en todos los valores
+    const passwordField = allValues?.password;
+    if (passwordField && value !== passwordField) {
+      return 'Las contraseñas no coinciden';
+    }
+    
+    return null;
+  },
 };
 
 export const useFormValidation = (config: FormValidationConfig) => {
   const [errors, setErrors] = useState<FormErrors>({});
   const [touched, setTouched] = useState<{ [key: string]: boolean }>({});
 
-  const validateField = useCallback((name: string, value: string): FieldError | null => {
+  const validateField = useCallback((name: string, value: string, allValues?: { [key: string]: string }): FieldError | null => {
     const rules = config[name];
     if (!rules) return null;
 
@@ -133,7 +145,7 @@ export const useFormValidation = (config: FormValidationConfig) => {
           break;
         case 'custom':
           if (typeof ruleValue === 'function') {
-            error = ruleValue(value);
+            error = ruleValue(value, allValues);
           }
           break;
       }
@@ -154,7 +166,7 @@ export const useFormValidation = (config: FormValidationConfig) => {
     let isValid = true;
 
     for (const [name, value] of Object.entries(values)) {
-      const error = validateField(name, value);
+      const error = validateField(name, value, values);
       newErrors[name] = error;
       if (error) {
         isValid = false;
@@ -165,10 +177,10 @@ export const useFormValidation = (config: FormValidationConfig) => {
     return isValid;
   }, [validateField]);
 
-  const handleFieldChange = useCallback((name: string, value: string) => {
+  const handleFieldChange = useCallback((name: string, value: string, allValues?: { [key: string]: string }) => {
     // Solo validar si el campo ya ha sido tocado
     if (touched[name]) {
-      const error = validateField(name, value);
+      const error = validateField(name, value, allValues);
       setErrors(prev => ({
         ...prev,
         [name]: error,
@@ -176,13 +188,13 @@ export const useFormValidation = (config: FormValidationConfig) => {
     }
   }, [validateField, touched]);
 
-  const handleFieldBlur = useCallback((name: string, value: string) => {
+  const handleFieldBlur = useCallback((name: string, value: string, allValues?: { [key: string]: string }) => {
     setTouched(prev => ({
       ...prev,
       [name]: true,
     }));
 
-    const error = validateField(name, value);
+    const error = validateField(name, value, allValues);
     setErrors(prev => ({
       ...prev,
       [name]: error,
