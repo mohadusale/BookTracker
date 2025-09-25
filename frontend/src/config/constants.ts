@@ -8,6 +8,16 @@ export const API_ENDPOINTS = {
     VERIFY: '/token/verify/',
     PROFILE: '/users/profile/',
   },
+  SHELVES: {
+    LIST: '/bookshelves/',
+    CREATE: '/bookshelves/',
+    DETAIL: (id: number) => `/bookshelves/${id}/`,
+    UPDATE: (id: number) => `/bookshelves/${id}/`,
+    DELETE: (id: number) => `/bookshelves/${id}/`,
+    ADD_BOOK: (id: number) => `/bookshelves/${id}/add_book/`,
+    REMOVE_BOOK: (id: number) => `/bookshelves/${id}/remove_book/`,
+    BOOKS: (id: number) => `/bookshelves/${id}/books/`,
+  },
 } as const;
 
 // Form Validation Messages

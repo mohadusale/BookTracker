@@ -44,6 +44,14 @@ export const mapReadingStatusToBookCard = (readingStatus: ReadingStatusWithBook)
     status: readingStatus.status,
     progress: progress,
     readingStatusId: readingStatus.id,
+    // Datos adicionales del libro para el modal
+    isbn: book.isbn,
+    synopsis: book.synopsis,
+    publication_date: book.publication_date,
+    pages: book.pages,
+    publisher: book.publisher,
+    authors: book.authors,
+    genres: book.genres,
   };
 };
 

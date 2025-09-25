@@ -1,0 +1,156 @@
+import type { 
+  Bookshelf, 
+  BookshelfWithBooks, 
+  CreateBookshelfData, 
+  UpdateBookshelfData,
+  BookshelfEntryResponse 
+} from '../types/shelves';
+import { API_ENDPOINTS } from '../config/constants';
+import { useAuthStore } from '../stores/authStore';
+
+const API_BASE_URL = 'http://localhost:8000/api';
+
+// Función helper para obtener el token de acceso
+const getAccessToken = (): string | null => {
+  const authStore = useAuthStore.getState();
+  return authStore.tokens?.access || null;
+};
+
+// Función helper para hacer requests autenticados
+const makeAuthenticatedRequest = async (url: string, options: RequestInit = {}) => {
+  const token = getAccessToken();
+  if (!token) {
+    throw new Error('No hay token de autenticación');
+  }
+
+  const response = await fetch(url, {
+    ...options,
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  });
+
+  if (!response.ok) {
+    if (response.status === 401) {
+      throw new Error('Token de autenticación inválido');
+    }
+    if (response.status === 404) {
+      throw new Error('Recurso no encontrado');
+    }
+    if (response.status === 400) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Error en la petición');
+    }
+    throw new Error(`Error del servidor: ${response.status}`);
+  }
+
+  return response;
+};
+
+// Servicio para gestión de estanterías
+export const shelvesService = {
+  // Obtener todas las estanterías del usuario actual
+  async getUserBookshelves(): Promise<Bookshelf[]> {
+    try {
+      const response = await makeAuthenticatedRequest(`${API_BASE_URL}${API_ENDPOINTS.SHELVES.LIST}`);
+      const data = await response.json();
+      return data.results || data; // Manejar tanto paginación como lista simple
+    } catch (error) {
+      console.error('Error al obtener estanterías:', error);
+      throw error;
+    }
+  },
+
+  // Obtener una estantería específica con sus libros
+  async getBookshelf(id: number): Promise<BookshelfWithBooks> {
+    try {
+      const response = await makeAuthenticatedRequest(`${API_BASE_URL}${API_ENDPOINTS.SHELVES.DETAIL(id)}`);
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('Error al obtener estantería:', error);
+      throw error;
+    }
+  },
+
+  // Crear una nueva estantería
+  async createBookshelf(data: CreateBookshelfData): Promise<Bookshelf> {
+    try {
+      const response = await makeAuthenticatedRequest(`${API_BASE_URL}${API_ENDPOINTS.SHELVES.CREATE}`, {
+        method: 'POST',
+        body: JSON.stringify(data),
+      });
+      return await response.json();
+    } catch (error) {
+      console.error('Error al crear estantería:', error);
+      throw error;
+    }
+  },
+
+  // Actualizar una estantería existente
+  async updateBookshelf(id: number, data: UpdateBookshelfData): Promise<Bookshelf> {
+    try {
+      const response = await makeAuthenticatedRequest(`${API_BASE_URL}${API_ENDPOINTS.SHELVES.UPDATE(id)}`, {
+        method: 'PATCH',
+        body: JSON.stringify(data),
+      });
+      return await response.json();
+    } catch (error) {
+      console.error('Error al actualizar estantería:', error);
+      throw error;
+    }
+  },
+
+  // Eliminar una estantería
+  async deleteBookshelf(id: number): Promise<void> {
+    try {
+      await makeAuthenticatedRequest(`${API_BASE_URL}${API_ENDPOINTS.SHELVES.DELETE(id)}`, {
+        method: 'DELETE',
+      });
+    } catch (error) {
+      console.error('Error al eliminar estantería:', error);
+      throw error;
+    }
+  },
+
+  // Añadir un libro a una estantería
+  async addBookToShelf(shelfId: number, bookId: number): Promise<BookshelfEntryResponse> {
+    try {
+      const response = await makeAuthenticatedRequest(`${API_BASE_URL}${API_ENDPOINTS.SHELVES.ADD_BOOK(shelfId)}`, {
+        method: 'POST',
+        body: JSON.stringify({ book_id: bookId }),
+      });
+      return await response.json();
+    } catch (error) {
+      console.error('Error al añadir libro a estantería:', error);
+      throw error;
+    }
+  },
+
+  // Remover un libro de una estantería
+  async removeBookFromShelf(shelfId: number, bookId: number): Promise<BookshelfEntryResponse> {
+    try {
+      const response = await makeAuthenticatedRequest(`${API_BASE_URL}${API_ENDPOINTS.SHELVES.REMOVE_BOOK(shelfId)}?book_id=${bookId}`, {
+        method: 'DELETE',
+      });
+      return await response.json();
+    } catch (error) {
+      console.error('Error al remover libro de estantería:', error);
+      throw error;
+    }
+  },
+
+  // Obtener todos los libros de una estantería
+  async getShelfBooks(shelfId: number): Promise<any[]> {
+    try {
+      const response = await makeAuthenticatedRequest(`${API_BASE_URL}${API_ENDPOINTS.SHELVES.BOOKS(shelfId)}`);
+      const data = await response.json();
+      return data.results || data; // Manejar tanto paginación como lista simple
+    } catch (error) {
+      console.error('Error al obtener libros de estantería:', error);
+      throw error;
+    }
+  },
+};

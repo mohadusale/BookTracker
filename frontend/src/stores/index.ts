@@ -6,3 +6,29 @@ export {
   useAuthError, 
   useAuthActions 
 } from './authStore';
+
+export { 
+  useLibraryStore,
+  useLibrary,
+  useLibraryBooks,
+  useLibraryLoading,
+  useLibraryError,
+  useReadingStatuses,
+  useUserBookStatus,
+  useBooksByStatus,
+  useLibraryActions
+} from './libraryStore';
+
+export { 
+  useShelvesStore,
+  useShelves,
+  useShelvesList,
+  useShelvesLoading,
+  useShelvesError,
+  useSelectedShelf,
+  useShelfBooks,
+  useShelfById,
+  useShelvesBySearch,
+  useShelvesBySort,
+  useShelvesActions
+} from './shelvesStore';

@@ -235,7 +235,7 @@ class BookshelfReadSerializer(serializers.ModelSerializer):
 class BookshelfWriteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Bookshelf
-        fields = ['name','description']
+        fields = ['id', 'name', 'description', 'created_at']
 
 # Comment Serializers
 class CommentReadSerializer(serializers.ModelSerializer):

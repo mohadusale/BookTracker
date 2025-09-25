@@ -17,3 +17,4 @@ export { ImageWithFallback } from './ImageWithFallback';
 export { StarRating } from './StarRating';
 export { InteractiveStarRating } from './InteractiveStarRating';
 export { StarRatingInput } from './StarRatingInput';
+export { BookDetailsModal } from './BookDetailsModal';

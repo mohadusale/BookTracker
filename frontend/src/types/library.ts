@@ -39,7 +39,18 @@ export interface BookCardData {
   status: ReadingStatusType;
   progress: number; // Calculado basado en el estado
   readingStatusId: number; // ID del ReadingStatus para actualizaciones
+  // Datos adicionales del libro (opcionales para compatibilidad)
+  isbn?: string;
+  synopsis?: string;
+  publication_date?: string | null;
+  pages?: number | null;
+  publisher?: string;
+  authors?: string[];
+  genres?: string[];
 }
+
+// Tipo para el modal de detalles del libro (ahora es igual a BookCardData)
+export type BookDetailsData = BookCardData;
 
 // Estado de carga para la UI
 export interface LibraryState {

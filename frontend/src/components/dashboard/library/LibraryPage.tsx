@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { LibraryTabs } from './LibraryTabs';
 import { BooksSection } from './BooksSection';
-import { ShelvesSection } from './ShelvesSection';
+import { ShelvesSection } from './shelves/ShelvesSection';
 
 const LibraryPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'books' | 'shelves'>('books');
