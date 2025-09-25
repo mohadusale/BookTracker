@@ -31,8 +31,16 @@ export function RatingModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <Card className="w-full max-w-md bg-white rounded-2xl shadow-xl">
+    <div className="fixed inset-0 z-[9999]">
+      {/* Fondo oscuro */}
+      <div 
+        className="fixed inset-0 bg-black/50"
+        onClick={onClose}
+      />
+      
+      {/* Modal */}
+      <div className="absolute inset-0 flex items-center justify-center p-4">
+        <Card className="relative w-full max-w-md bg-white rounded-2xl shadow-xl">
         <CardHeader className="flex flex-row items-center justify-between pb-4">
           <CardTitle className="font-display font-bold text-lg text-neutral-900">
             Calificar Libro
@@ -85,7 +93,8 @@ export function RatingModal({
             </div>
           </div>
         </CardContent>
-      </Card>
+        </Card>
+      </div>
     </div>
   );
 }

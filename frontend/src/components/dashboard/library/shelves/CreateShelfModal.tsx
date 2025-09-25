@@ -68,8 +68,16 @@ export function CreateShelfModal({ isOpen, onClose }: CreateShelfModalProps) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-md">
+    <div className="fixed inset-0 z-[9999]">
+      {/* Fondo oscuro */}
+      <div 
+        className="fixed inset-0 bg-black/50"
+        onClick={handleClose}
+      />
+      
+      {/* Modal */}
+      <div className="absolute inset-0 flex items-center justify-center p-4">
+        <div className="relative bg-white rounded-lg shadow-xl w-full max-w-md">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-neutral-200">
           <h2 className="font-display font-semibold text-lg text-neutral-900">
@@ -161,6 +169,7 @@ export function CreateShelfModal({ isOpen, onClose }: CreateShelfModalProps) {
             </Button>
           </div>
         </form>
+        </div>
       </div>
     </div>
   );

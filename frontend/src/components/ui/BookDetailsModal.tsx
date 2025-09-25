@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { X, BookOpen, Calendar, Hash, Building, FileText } from 'lucide-react';
+import { X } from 'lucide-react';
 import { Button } from './Button';
 import { ImageWithFallback } from './ImageWithFallback';
 import { InteractiveStarRating } from './InteractiveStarRating';
@@ -47,18 +47,6 @@ export function BookDetailsModal({ isOpen, onClose, book, onRatingChange }: Book
     }
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'N':
-        return 'bg-blue-100 text-blue-800';
-      case 'R':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'C':
-        return 'bg-green-100 text-green-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
-  };
 
   const handleRatingChange = (rating: number) => {
     if (onRatingChange) {
@@ -67,158 +55,137 @@ export function BookDetailsModal({ isOpen, onClose, book, onRatingChange }: Book
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      {/* Fondo oscuro */}
+    <div className="fixed inset-0 z-[9999]">
+      {/* Fondo oscuro - cubre toda la página */}
       <div 
-        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+        className="fixed inset-0 bg-black/50 backdrop-blur-sm"
         onClick={onClose}
       />
       
-      {/* Modal */}
-      <div className="relative bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
-        {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-neutral-200">
-          <h2 className="text-xl font-semibold text-neutral-900">Detalles del libro</h2>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onClose}
-            className="h-8 w-8 p-0 hover:bg-neutral-100"
-          >
-            <X className="h-4 w-4" />
-          </Button>
-        </div>
-
-        {/* Contenido */}
-        <div className="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
-          <div className="flex flex-col lg:flex-row gap-6">
-            {/* Portada */}
-            <div className="flex-shrink-0">
-              <div className="w-48 h-72 mx-auto lg:mx-0 bg-neutral-100 rounded-lg overflow-hidden shadow-lg">
-                <ImageWithFallback
-                  src={book.cover}
-                  alt={book.title}
-                  className="w-full h-full object-cover"
-                />
-              </div>
+      {/* Modal centrado */}
+      <div className="fixed inset-0 flex items-center justify-center p-4">
+        <div className="relative w-full max-w-2xl max-h-[95vh] overflow-hidden">
+          <div className="relative bg-white rounded-2xl shadow-xl overflow-hidden">
+            {/* Header minimalista */}
+            <div className="flex items-center justify-between p-5 border-b border-neutral-200">
+              <h2 className="text-lg font-medium text-neutral-800 tracking-wide">Detalles del libro</h2>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onClose}
+                className="h-8 w-8 p-0 hover:bg-neutral-100"
+              >
+                <X className="h-4 w-4" />
+              </Button>
             </div>
 
-            {/* Información del libro */}
-            <div className="flex-1 space-y-6">
-              {/* Título y autor */}
-              <div>
-                <h1 className="text-2xl font-bold text-neutral-900 mb-2">
-                  {book.title}
-                </h1>
-                <div className="text-lg text-neutral-600 mb-4">
-                  {book.author}
-                </div>
-              </div>
-
-              {/* Estado de lectura */}
-              <div className="space-y-3">
-                <div className="flex items-center gap-4">
-                  <span className="text-sm font-medium text-neutral-700">Estado:</span>
-                  <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(book.status)}`}>
-                    {getStatusText(book.status)}
-                  </span>
-                </div>
-                
-                {/* Calificación - solo si está finalizado */}
-                {book.status === 'C' && (
-                  <div className="flex items-center gap-2">
-                    <InteractiveStarRating
-                      rating={book.rating}
-                      size="lg"
-                      showValue={false}
-                      bookStatus={book.status as 'N' | 'R' | 'C'}
-                      onRatingChange={handleRatingChange}
-                      bookId={book.id}
-                      disabled={false}
+            {/* Contenido principal */}
+            <div className="overflow-y-auto max-h-[calc(95vh-80px)] p-6">
+              {/* Layout: Portada izquierda, info derecha */}
+              <div className="flex gap-6 mb-6">
+                {/* Portada izquierda */}
+                <div className="flex-shrink-0">
+                  <div className="w-40 h-56 bg-neutral-100 rounded-lg overflow-hidden shadow-sm">
+                    <ImageWithFallback
+                      src={book.cover}
+                      alt={book.title}
+                      className="w-full h-full object-cover"
                     />
                   </div>
-                )}
-              </div>
-
-              {/* Información adicional */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Páginas */}
-                <div className="flex items-center gap-2 text-neutral-600">
-                  <BookOpen className="h-4 w-4" />
-                  <span className="text-sm">
-                    {book.pages ? `${book.pages} páginas` : 'Páginas no disponibles'}
-                  </span>
                 </div>
 
-                {/* ISBN */}
-                <div className="flex items-center gap-2 text-neutral-600">
-                  <Hash className="h-4 w-4" />
-                  <span className="text-sm">
-                    {book.isbn || 'ISBN no disponible'}
-                  </span>
-                </div>
-
-                {/* Editorial */}
-                <div className="flex items-center gap-2 text-neutral-600">
-                  <Building className="h-4 w-4" />
-                  <span className="text-sm">
-                    {book.publisher || 'Editorial no disponible'}
-                  </span>
-                </div>
-
-                {/* Fecha de publicación */}
-                <div className="flex items-center gap-2 text-neutral-600">
-                  <Calendar className="h-4 w-4" />
-                  <span className="text-sm">
-                    {book.publication_date 
-                      ? new Date(book.publication_date).getFullYear().toString()
-                      : 'Año no disponible'
-                    }
-                  </span>
-                </div>
-              </div>
-
-
-              {/* Géneros */}
-              {book.genres && book.genres.length > 0 && (
-                <div className="space-y-2">
-                  <span className="text-sm font-medium text-neutral-700">Géneros:</span>
-                  <div className="flex flex-wrap gap-2">
-                    {book.genres.map((genre, index) => (
-                      <span
-                        key={index}
-                        className="px-2 py-1 bg-neutral-100 text-neutral-700 text-xs rounded-full"
-                      >
-                        {genre}
-                      </span>
-                    ))}
+                {/* Información derecha */}
+                <div className="flex-1 space-y-4">
+                  {/* Título y autor */}
+                  <div>
+                    <h1 className="text-2xl font-bold text-neutral-900 mb-1 leading-tight tracking-wide">
+                      {book.title.toUpperCase()}
+                    </h1>
+                    <p className="text-base text-neutral-700 font-medium">
+                      By {book.author}
+                    </p>
                   </div>
-                </div>
-              )}
-            </div>
-          </div>
-          
-          {/* Sinopsis - debajo de la portada, de izquierda a derecha */}
-          <div className="mt-6 space-y-2">
-            <div className="flex items-center gap-2">
-              <FileText className="h-4 w-4" />
-              <span className="text-sm font-medium text-neutral-700">Sinopsis</span>
-            </div>
-            <p className="text-neutral-600 text-sm leading-relaxed">
-              {book.synopsis || 'Sinopsis no disponible para este libro.'}
-            </p>
-          </div>
-        </div>
 
-        {/* Footer */}
-        <div className="flex justify-end gap-3 p-6 border-t border-neutral-200 bg-neutral-50">
-          <Button
-            variant="outline"
-            onClick={onClose}
-            className="px-6"
-          >
-            Cerrar
-          </Button>
+                  {/* Estado de lectura */}
+                  <div>
+                    <p className="text-sm text-neutral-700 mb-2">
+                      Reading Status: <span className={`font-semibold ${
+                        book.status === 'N' ? 'text-blue-600' :
+                        book.status === 'R' ? 'text-yellow-600' :
+                        'text-green-600'
+                      }`}>
+                        {getStatusText(book.status).toUpperCase()}
+                      </span>
+                    </p>
+                    
+                    {/* Calificación - solo si está finalizado */}
+                    {book.status === 'C' && (
+                      <div className="mt-3">
+                        <InteractiveStarRating
+                          rating={book.rating}
+                          size="md"
+                          showValue={false}
+                          bookStatus={book.status as 'N' | 'R' | 'C'}
+                          onRatingChange={handleRatingChange}
+                          bookId={book.id}
+                          disabled={false}
+                        />
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Información técnica - formato compacto */}
+                  <div className="space-y-1 text-sm text-neutral-700">
+                    {book.publisher && (
+                      <div className="flex">
+                        <span className="font-medium w-20">Publisher:</span>
+                        <span>{book.publisher}</span>
+                      </div>
+                    )}
+                    {book.isbn && (
+                      <div className="flex">
+                        <span className="font-medium w-20">ISBN:</span>
+                        <span className="font-mono text-xs">{book.isbn}</span>
+                      </div>
+                    )}
+                    {book.pages && (
+                      <div className="flex">
+                        <span className="font-medium w-20">Pages:</span>
+                        <span>{book.pages}</span>
+                      </div>
+                    )}
+                    {book.publication_date && (
+                      <div className="flex">
+                        <span className="font-medium w-20">Year:</span>
+                        <span>{new Date(book.publication_date).getFullYear()}</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Géneros */}
+                  {book.genres && book.genres.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5">
+                      {book.genres.map((genre, index) => (
+                        <span
+                          key={index}
+                          className="px-2 py-0.5 bg-neutral-100 text-neutral-600 text-xs rounded-full font-medium"
+                        >
+                          {genre}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+              
+              {/* Sinopsis abajo */}
+              <div className="border-t border-neutral-200 pt-5">
+                <p className="text-neutral-700 text-sm leading-relaxed">
+                  <span className="font-semibold">Synopsis:</span> {book.synopsis || 'Synopsis not available for this book.'}
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
