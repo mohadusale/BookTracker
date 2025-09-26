@@ -3,6 +3,7 @@ import { X } from 'lucide-react';
 import { Button } from './Button';
 import { ImageWithFallback } from './ImageWithFallback';
 import { InteractiveStarRating } from './InteractiveStarRating';
+import { ExpandableSynopsis } from './ExpandableSynopsis';
 import type { BookCardData } from '../../types/library';
 
 interface BookDetailsModalProps {
@@ -136,30 +137,22 @@ export function BookDetailsModal({ isOpen, onClose, book, onRatingChange }: Book
 
                   {/* Información técnica - formato compacto */}
                   <div className="space-y-1 text-sm text-neutral-700">
-                    {book.publisher && (
-                      <div className="flex">
-                        <span className="font-medium w-20">Publisher:</span>
-                        <span>{book.publisher}</span>
-                      </div>
-                    )}
-                    {book.isbn && (
-                      <div className="flex">
-                        <span className="font-medium w-20">ISBN:</span>
-                        <span className="font-mono text-xs">{book.isbn}</span>
-                      </div>
-                    )}
-                    {book.pages && (
-                      <div className="flex">
-                        <span className="font-medium w-20">Pages:</span>
-                        <span>{book.pages}</span>
-                      </div>
-                    )}
-                    {book.publication_date && (
-                      <div className="flex">
-                        <span className="font-medium w-20">Year:</span>
-                        <span>{new Date(book.publication_date).getFullYear()}</span>
-                      </div>
-                    )}
+                    <div className="flex">
+                      <span className="font-medium w-20">Publisher:</span>
+                      <span>{book.publisher || '—'}</span>
+                    </div>
+                    <div className="flex">
+                      <span className="font-medium w-20">ISBN:</span>
+                      <span className="font-mono text-xs">{book.isbn || '—'}</span>
+                    </div>
+                    <div className="flex">
+                      <span className="font-medium w-20">Pages:</span>
+                      <span>{book.pages || '—'}</span>
+                    </div>
+                    <div className="flex">
+                      <span className="font-medium w-20">Year:</span>
+                      <span>{book.publication_date ? new Date(book.publication_date).getFullYear() : '—'}</span>
+                    </div>
                   </div>
 
                   {/* Géneros */}
@@ -178,12 +171,10 @@ export function BookDetailsModal({ isOpen, onClose, book, onRatingChange }: Book
                 </div>
               </div>
               
-              {/* Sinopsis abajo */}
-              <div className="border-t border-neutral-200 pt-5">
-                <p className="text-neutral-700 text-sm leading-relaxed">
-                  <span className="font-semibold">Synopsis:</span> {book.synopsis || 'Synopsis not available for this book.'}
-                </p>
-              </div>
+              {/* Sinopsis desplegable */}
+              <ExpandableSynopsis 
+                synopsis={book.synopsis || 'Synopsis not available for this book.'}
+              />
             </div>
           </div>
         </div>

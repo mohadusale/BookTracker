@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '../../ui';
+import { Card, CardContent } from '../../ui';
 import { Button } from '../../ui';
 import { Avatar, AvatarFallback, AvatarImage } from '../../ui';
 import { Badge } from '../../ui';
@@ -140,7 +140,7 @@ const CommunityPage: React.FC = () => {
               {/* Post Header */}
               <div className="flex items-center gap-3">
                 <Avatar className="h-10 w-10 border border-border">
-                  <AvatarImage src={post.user.avatar} />
+                  <AvatarImage src={post.user.avatar} alt={post.user.name} />
                   <AvatarFallback>{post.user.name[0]}</AvatarFallback>
                 </Avatar>
                 

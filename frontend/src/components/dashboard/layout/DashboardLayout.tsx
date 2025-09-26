@@ -9,6 +9,7 @@ const LibraryPage = lazy(() => import('../library/LibraryPage'));
 const ExplorePage = lazy(() => import('../explore/ExplorePage'));
 const CommunityPage = lazy(() => import('../community/CommunityPage'));
 const ProfilePage = lazy(() => import('../profile/ProfilePage'));
+const ShelfView = lazy(() => import('../library/shelves/ShelfView').then(module => ({ default: module.ShelfView })));
 
 interface DashboardLayoutProps {
   children?: React.ReactNode;
@@ -16,18 +17,42 @@ interface DashboardLayoutProps {
 
 const DashboardLayout: React.FC<DashboardLayoutProps> = memo(() => {
   const [activeSection, setActiveSection] = useState('home');
+  const [shelfView, setShelfView] = useState<{ id: number; name: string } | null>(null);
 
   const handleSectionChange = useCallback((section: string) => {
     setActiveSection(section);
+    setShelfView(null); // Limpiar vista de estantería al cambiar sección
+  }, []);
+
+  const handleViewShelf = useCallback((shelfId: number, shelfName: string) => {
+    setShelfView({ id: shelfId, name: shelfName });
+  }, []);
+
+  const handleBackToShelves = useCallback(() => {
+    setShelfView(null);
+    setActiveSection('library');
   }, []);
 
   // Renderizar sección activa
   const renderActiveSection = () => {
+    // Si hay una estantería seleccionada, mostrar la vista de la estantería
+    if (shelfView) {
+      return (
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+          <ShelfView
+            shelfId={shelfView.id}
+            shelfName={shelfView.name}
+            onBack={handleBackToShelves}
+          />
+        </div>
+      );
+    }
+
     switch (activeSection) {
       case 'home':
         return <HomePage />;
       case 'library':
-        return <LibraryPage />;
+        return <LibraryPage onViewShelf={handleViewShelf} />;
       case 'discover':
         return <ExplorePage />;
       case 'community':

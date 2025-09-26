@@ -47,6 +47,7 @@ export const mapBookshelfToCardData = (bookshelf: Bookshelf, bookCount: number =
     cover: cover,
     color: color,
     created_at: bookshelf.created_at,
+    visibility: bookshelf.visibility || 'public',
   };
 };
 

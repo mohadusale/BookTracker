@@ -4,8 +4,17 @@ export interface Bookshelf {
   id: number;
   name: string;
   description: string;
+  visibility: 'public' | 'private';
+  cover_image_url?: string;
+  auto_cover_books?: AutoCoverBook[];
   created_at: string;
   user: number;
+}
+
+export interface AutoCoverBook {
+  id: number;
+  title: string;
+  cover_image_url: string;
 }
 
 export interface BookshelfEntry {
@@ -25,8 +34,9 @@ export interface ShelfCardData {
   id: number;
   name: string;
   description: string;
+  visibility: 'public' | 'private';
   bookCount: number;
-  cover: string; // URL de la imagen de portada (del primer libro o placeholder)
+  cover: string; // URL de la imagen de portada (personalizada, automática o placeholder)
   color: string; // Clase CSS para el color de fondo
   created_at: string;
 }
@@ -52,11 +62,15 @@ export interface ShelvesState {
 export interface CreateBookshelfData {
   name: string;
   description?: string;
+  visibility?: 'public' | 'private';
+  cover_image?: File;
 }
 
 export interface UpdateBookshelfData {
   name?: string;
   description?: string;
+  visibility?: 'public' | 'private';
+  cover_image?: File;
 }
 
 // Tipo para respuestas de la API

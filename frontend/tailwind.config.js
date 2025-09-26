@@ -7,136 +7,130 @@ export default {
   theme: {
     extend: {
       colors: {
+        // Paleta púrpura de 14 colores - ÚNICA FUENTE DE COLORES
+        purple: {
+          50: '#F1F0F9',    // Color 1 - Lavanda muy claro
+          100: '#DDD8F0',   // Color 2 - Lavanda claro
+          200: '#BFB5E3',   // Color 3 - Lavanda medio claro
+          300: '#A495D7',   // Color 4 - Lavanda medio
+          400: '#8D78CA',   // Color 5 - Púrpura claro
+          500: '#775CBD',   // Color 6 - Púrpura medio (PRIMARY)
+          600: '#6145A5',   // Color 7 - Púrpura
+          700: '#4A3480',   // Color 8 - Púrpura oscuro
+          800: '#35245E',   // Color 9 - Índigo
+          900: '#2D1E50',   // Color 10 - Índigo oscuro
+          950: '#271447',   // Color 11 - Índigo muy oscuro
+        },
+        // Mapeo lógico de colores
         primary: {
-          50: '#F2CCB6',    // Primario suave
-          100: '#F2CCB6',
-          200: '#E5A68A',
-          300: '#E07A5F',   // Primario main
-          400: '#D16B4F',
-          500: '#E07A5F',   // Main
-          600: '#C65A3F',
-          700: '#B54A2F',
-          800: '#A43A1F',
-          900: '#932A0F',
-        },
-        // New design system colors
-        background: 'hsl(var(--background))',
-        foreground: 'hsl(var(--foreground))',
-        card: {
-          DEFAULT: 'hsl(var(--card))',
-          foreground: 'hsl(var(--card-foreground))',
-        },
-        popover: {
-          DEFAULT: 'hsl(var(--popover))',
-          foreground: 'hsl(var(--popover-foreground))',
-        },
-        muted: {
-          DEFAULT: 'hsl(var(--muted))',
-          foreground: 'hsl(var(--muted-foreground))',
-        },
-        accent: {
-          DEFAULT: 'hsl(var(--accent))',
-          foreground: 'hsl(var(--accent-foreground))',
-        },
-        destructive: {
-          DEFAULT: 'hsl(var(--destructive))',
-          foreground: 'hsl(var(--destructive-foreground))',
-        },
-        border: 'hsl(var(--border))',
-        input: 'hsl(var(--input))',
-        ring: 'hsl(var(--ring))',
-        chart: {
-          '1': 'hsl(var(--chart-1))',
-          '2': 'hsl(var(--chart-2))',
-          '3': 'hsl(var(--chart-3))',
-          '4': 'hsl(var(--chart-4))',
-          '5': 'hsl(var(--chart-5))',
+          50: '#F1F0F9',    // Color 1
+          100: '#DDD8F0',   // Color 2
+          200: '#BFB5E3',   // Color 3
+          300: '#A495D7',   // Color 4
+          400: '#8D78CA',   // Color 5
+          500: '#775CBD',   // Color 6 - MAIN
+          600: '#6145A5',   // Color 7
+          700: '#4A3480',   // Color 8
+          800: '#35245E',   // Color 9
+          900: '#2D1E50',   // Color 10
         },
         secondary: {
-          50: '#A8C4B0',    // Secundario claro
-          100: '#A8C4B0',
-          200: '#8FB39A',
-          300: '#81B29A',   // Secundario main
-          400: '#6B9B87',
-          500: '#81B29A',   // Main
-          600: '#5A8A6B',
-          700: '#4A7A5B',
-          800: '#3A6A4B',
-          900: '#2A5A3B',
+          50: '#F1F0F9',    // Color 1
+          100: '#DDD8F0',   // Color 2
+          200: '#BFB5E3',   // Color 3
+          300: '#A495D7',   // Color 4
+          400: '#8D78CA',   // Color 5
+          500: '#775CBD',   // Color 6
+          600: '#6145A5',   // Color 7
+          700: '#4A3480',   // Color 8
+          800: '#35245E',   // Color 9
+          900: '#2D1E50',   // Color 10
         },
-        background: {
-          primary: '#FDFBF7',   // Fondo principal
-          secondary: '#F4F1EC'  // Fondo secundario
-        },
-        text: {
-          primary: '#3A3531',   // Texto principal
-          secondary: '#8A817C'  // Texto secundario
-        },
-        'primary-soft': '#F2CCB6',  // Primario suave
-        secondary: {
-          50: '#f8fafc',
-          100: '#f1f5f9',
-          200: '#e2e8f0',
-          300: '#cbd5e1',
-          400: '#94a3b8',
-          500: '#64748b',
-          600: '#475569',
-          700: '#334155',
-          800: '#1e293b',
-          900: '#0f172a',
-          950: '#020617',
-        },
+        // Estados usando solo la paleta
         success: {
-          50: '#f0fdf4',
-          100: '#dcfce7',
-          200: '#bbf7d0',
-          300: '#86efac',
-          400: '#4ade80',
-          500: '#22c55e',
-          600: '#16a34a',
-          700: '#15803d',
-          800: '#166534',
-          900: '#14532d',
-          950: '#052e16',
+          50: '#F1F0F9',    // Color 1
+          100: '#DDD8F0',   // Color 2
+          200: '#BFB5E3',   // Color 3
+          300: '#A495D7',   // Color 4
+          400: '#8D78CA',   // Color 5
+          500: '#775CBD',   // Color 6
+          600: '#6145A5',   // Color 7
+          700: '#4A3480',   // Color 8
+          800: '#35245E',   // Color 9
+          900: '#2D1E50',   // Color 10
         },
         warning: {
-          50: '#fffbeb',
-          100: '#fef3c7',
-          200: '#fde68a',
-          300: '#fcd34d',
-          400: '#fbbf24',
-          500: '#f59e0b',
-          600: '#d97706',
-          700: '#b45309',
-          800: '#92400e',
-          900: '#78350f',
-          950: '#451a03',
+          50: '#F1F0F9',    // Color 1
+          100: '#DDD8F0',   // Color 2
+          200: '#BFB5E3',   // Color 3
+          300: '#A495D7',   // Color 4
+          400: '#8D78CA',   // Color 5
+          500: '#775CBD',   // Color 6
+          600: '#6145A5',   // Color 7
+          700: '#4A3480',   // Color 8
+          800: '#35245E',   // Color 9
+          900: '#2D1E50',   // Color 10
         },
         error: {
-          50: '#fef2f2',
-          100: '#fee2e2',
-          200: '#fecaca',
-          300: '#fca5a5',
-          400: '#f87171',
-          500: '#ef4444',
-          600: '#dc2626',
-          700: '#b91c1c',
-          800: '#991b1b',
-          900: '#7f1d1d',
-          950: '#450a0a',
+          50: '#F1F0F9',    // Color 1
+          100: '#DDD8F0',   // Color 2
+          200: '#BFB5E3',   // Color 3
+          300: '#A495D7',   // Color 4
+          400: '#8D78CA',   // Color 5
+          500: '#775CBD',   // Color 6
+          600: '#6145A5',   // Color 7
+          700: '#4A3480',   // Color 8
+          800: '#35245E',   // Color 9
+          900: '#2D1E50',   // Color 10
         },
+        info: {
+          50: '#F1F0F9',    // Color 1
+          100: '#DDD8F0',   // Color 2
+          200: '#BFB5E3',   // Color 3
+          300: '#A495D7',   // Color 4
+          400: '#8D78CA',   // Color 5
+          500: '#775CBD',   // Color 6
+          600: '#6145A5',   // Color 7
+          700: '#4A3480',   // Color 8
+          800: '#35245E',   // Color 9
+          900: '#2D1E50',   // Color 10
+        },
+        // Neutral usando solo la paleta
         neutral: {
-          50: '#fafafa',
-          100: '#f5f5f5',
-          200: '#e5e5e5',
-          300: '#d4d4d4',
-          400: '#a3a3a3',
-          500: '#737373',
-          600: '#525252',
-          700: '#404040',
-          800: '#262626',
-          900: '#171717',
-          950: '#0a0a0a',
+          50: '#F1F0F9',    // Color 1
+          100: '#DDD8F0',   // Color 2
+          200: '#BFB5E3',   // Color 3
+          300: '#A495D7',   // Color 4
+          400: '#8D78CA',   // Color 5
+          500: '#775CBD',   // Color 6
+          600: '#6145A5',   // Color 7
+          700: '#4A3480',   // Color 8
+          800: '#35245E',   // Color 9
+          900: '#2D1E50',   // Color 10
+        },
+        // Colores específicos para diferentes usos
+        red: {
+          50: '#F1F0F9',    // Color 1
+          100: '#DDD8F0',    // Color 2
+          200: '#BFB5E3',    // Color 3
+          300: '#A495D7',    // Color 4
+          400: '#8D78CA',    // Color 5
+          500: '#775CBD',    // Color 6
+          600: '#6145A5',    // Color 7
+          700: '#4A3480',    // Color 8
+          800: '#35245E',    // Color 9
+          900: '#2D1E50',    // Color 10
+        },
+        // Fondos y texto
+        background: {
+          primary: '#F1F0F9',    // Color 1
+          secondary: '#DDD8F0',  // Color 2
+          tertiary: '#BFB5E3',   // Color 3
+        },
+        text: {
+          primary: '#2D1E50',    // Color 10
+          secondary: '#4A3480',  // Color 8
+          tertiary: '#6145A5',   // Color 7
         }
       },
       fontFamily: {

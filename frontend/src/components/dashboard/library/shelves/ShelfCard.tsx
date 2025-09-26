@@ -8,17 +8,20 @@ import { DeleteShelfModal } from './DeleteShelfModal';
 
 interface ShelfCardProps {
   shelf: ShelfCardData;
+  onViewShelf?: (shelfId: number, shelfName: string) => void;
 }
 
-export function ShelfCard({ shelf }: ShelfCardProps) {
+export function ShelfCard({ shelf, onViewShelf }: ShelfCardProps) {
   const [showActions, setShowActions] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const { deleteShelf } = useShelvesActions();
 
   const handleViewShelf = () => {
-    // TODO: Implementar vista de estantería
-    console.log('Ver estantería:', shelf.name);
+    if (onViewShelf) {
+      onViewShelf(shelf.id, shelf.name);
+    }
+    setShowActions(false);
   };
 
   const handleEditShelf = () => {
@@ -47,6 +50,7 @@ export function ShelfCard({ shelf }: ShelfCardProps) {
   const handleDeleteCancel = () => {
     setShowDeleteModal(false);
   };
+
 
   return (
     <Card className="group overflow-hidden bg-white hover:shadow-lg transition-all duration-200 border border-neutral-200 shadow-sm">
@@ -135,6 +139,7 @@ export function ShelfCard({ shelf }: ShelfCardProps) {
         shelfName={shelf.name}
         isDeleting={isDeleting}
       />
+
     </Card>
   );
 }

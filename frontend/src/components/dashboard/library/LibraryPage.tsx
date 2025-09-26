@@ -3,7 +3,11 @@ import { LibraryTabs } from './LibraryTabs';
 import { BooksSection } from './BooksSection';
 import { ShelvesSection } from './shelves/ShelvesSection';
 
-const LibraryPage: React.FC = () => {
+interface LibraryPageProps {
+  onViewShelf?: (shelfId: number, shelfName: string) => void;
+}
+
+const LibraryPage: React.FC<LibraryPageProps> = ({ onViewShelf }) => {
   const [activeTab, setActiveTab] = useState<'books' | 'shelves'>('books');
 
   return (
@@ -18,7 +22,7 @@ const LibraryPage: React.FC = () => {
         <LibraryTabs activeTab={activeTab} onTabChange={setActiveTab} />
 
         {/* Content based on active tab */}
-        {activeTab === 'books' ? <BooksSection /> : <ShelvesSection />}
+        {activeTab === 'books' ? <BooksSection /> : <ShelvesSection onViewShelf={onViewShelf} />}
       </div>
     </div>
   );

@@ -274,13 +274,61 @@ class Review(models.Model):
         return f"Review by {self.user.username} for {self.book.title}"
 
 class Bookshelf(models.Model):
+    VISIBILITY_CHOICES = [
+        ('public', 'Pública'),
+        ('private', 'Privada'),
+    ]
+    
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="bookshelves")
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True)
+    visibility = models.CharField(
+        max_length=10, 
+        choices=VISIBILITY_CHOICES, 
+        default='public',
+        help_text="Visibilidad de la estantería"
+    )
+    cover_image = models.ImageField(
+        upload_to='shelf_covers/', 
+        null=True, 
+        blank=True,
+        help_text="Imagen de portada personalizada de la estantería"
+    )
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         unique_together = ['user', 'name']
+    
+    def get_auto_cover_books(self):
+        """
+        Obtiene los libros para generar la portada automática según las reglas:
+        - 1 libro: ese libro
+        - 2-3 libros: el que más tiempo lleva en la estantería
+        - 4+ libros: los 4 más antiguos
+        """
+        books = self.entries.select_related('book').order_by('added_at')
+        book_count = books.count()
+        
+        if book_count == 0:
+            return []
+        elif book_count == 1:
+            return [books.first().book]
+        elif book_count <= 3:
+            return [books.first().book]  # El más antiguo
+        else:
+            return [entry.book for entry in books[:4]]  # Los 4 más antiguos
+    
+    def get_cover_display(self):
+        """
+        Retorna la URL de la portada a mostrar:
+        - Si tiene cover_image personalizada, la usa
+        - Si no, genera automáticamente basada en los libros
+        """
+        if self.cover_image:
+            return self.cover_image.url
+        else:
+            # Lógica para portada automática se manejará en el frontend
+            return None
     
     def __str__(self):
         return f"{self.name} by {self.user.username}"

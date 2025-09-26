@@ -40,8 +40,14 @@ const makeAuthenticatedRequest = async (url: string, options: RequestInit = {}) 
       throw new Error('Recurso no encontrado');
     }
     if (response.status === 400) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || 'Error en la petición');
+      try {
+        const errorData = await response.json();
+        console.error('Error 400 del backend:', errorData);
+        throw new Error(`Error de validación: ${JSON.stringify(errorData)}`);
+      } catch (parseError) {
+        console.error('Error al parsear respuesta de error:', parseError);
+        throw new Error('Error en la petición (400)');
+      }
     }
     throw new Error(`Error del servidor: ${response.status}`);
   }
@@ -78,11 +84,65 @@ export const shelvesService = {
   // Crear una nueva estantería
   async createBookshelf(data: CreateBookshelfData): Promise<Bookshelf> {
     try {
-      const response = await makeAuthenticatedRequest(`${API_BASE_URL}${API_ENDPOINTS.SHELVES.CREATE}`, {
-        method: 'POST',
-        body: JSON.stringify(data),
-      });
-      return await response.json();
+      const token = getAccessToken();
+      if (!token) {
+        throw new Error('No hay token de autenticación');
+      }
+
+      // Si hay una imagen, usar FormData, sino usar JSON
+      if (data.cover_image) {
+        const formData = new FormData();
+        formData.append('name', data.name);
+        if (data.description) {
+          formData.append('description', data.description);
+        }
+        formData.append('visibility', data.visibility || 'public');
+        formData.append('cover_image', data.cover_image);
+
+        console.log('Enviando FormData con imagen:', {
+          name: data.name,
+          description: data.description,
+          visibility: data.visibility,
+          hasImage: !!data.cover_image
+        });
+
+        const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.SHELVES.CREATE}`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+          body: formData,
+        });
+
+        if (!response.ok) {
+          if (response.status === 400) {
+            const errorData = await response.json();
+            console.error('Error de validación del backend:', errorData);
+            throw new Error(`Error de validación: ${JSON.stringify(errorData)}`);
+          }
+          throw new Error(`Error del servidor: ${response.status}`);
+        }
+
+        return await response.json();
+      } else {
+        // Sin imagen, usar JSON normal
+        const jsonData = {
+          name: data.name,
+          description: data.description || '',
+          visibility: data.visibility || 'public',
+        };
+        
+        console.log('Enviando JSON sin imagen:', jsonData);
+
+        const response = await makeAuthenticatedRequest(`${API_BASE_URL}${API_ENDPOINTS.SHELVES.CREATE}`, {
+          method: 'POST',
+          body: JSON.stringify(jsonData),
+        });
+        
+        const result = await response.json();
+        console.log('Respuesta del backend:', result);
+        return result;
+      }
     } catch (error) {
       console.error('Error al crear estantería:', error);
       throw error;

@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { Button } from '../../../ui';
-import { Input } from '../../../ui';
+import { Button } from '@/components/ui/Button';
 import { X, Loader2 } from 'lucide-react';
 import { useShelvesActions } from '../../../../stores';
 import { validateShelfData } from '../../../../utils/shelvesUtils';
+import { ShelfBasicInfo, ShelfCoverUpload, ShelfFormErrors } from './forms';
 
 interface CreateShelfModalProps {
   isOpen: boolean;
@@ -14,9 +14,12 @@ export function CreateShelfModal({ isOpen, onClose }: CreateShelfModalProps) {
   const [formData, setFormData] = useState({
     name: '',
     description: '',
+    visibility: 'public' as 'public' | 'private',
+    cover_image: null as File | null,
   });
   const [errors, setErrors] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
 
   const { createShelf } = useShelvesActions();
 
@@ -27,6 +30,51 @@ export function CreateShelfModal({ isOpen, onClose }: CreateShelfModalProps) {
       setErrors([]);
     }
   };
+
+  const handleVisibilityChange = (value: string) => {
+    setFormData(prev => ({ ...prev, visibility: value as 'public' | 'private' }));
+    // Limpiar errores cuando el usuario cambie la visibilidad
+    if (errors.length > 0) {
+      setErrors([]);
+    }
+  };
+
+  const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      // Validar tipo de archivo
+      if (!file.type.startsWith('image/')) {
+        setErrors(['Por favor selecciona un archivo de imagen válido.']);
+        return;
+      }
+
+      // Validar tamaño (máximo 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        setErrors(['La imagen debe ser menor a 5MB.']);
+        return;
+      }
+
+      setFormData(prev => ({ ...prev, cover_image: file }));
+      
+      // Crear preview
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setImagePreview(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+      
+      // Limpiar errores
+      if (errors.length > 0) {
+        setErrors([]);
+      }
+    }
+  };
+
+  const handleRemoveImage = () => {
+    setFormData(prev => ({ ...prev, cover_image: null }));
+    setImagePreview(null);
+  };
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,10 +91,13 @@ export function CreateShelfModal({ isOpen, onClose }: CreateShelfModalProps) {
       await createShelf({
         name: formData.name.trim(),
         description: formData.description.trim() || undefined,
+        visibility: formData.visibility,
+        cover_image: formData.cover_image || undefined,
       });
       
       // Limpiar formulario y cerrar modal
-      setFormData({ name: '', description: '' });
+      setFormData({ name: '', description: '', visibility: 'public', cover_image: null });
+      setImagePreview(null);
       setErrors([]);
       onClose();
     } catch (error) {
@@ -59,7 +110,8 @@ export function CreateShelfModal({ isOpen, onClose }: CreateShelfModalProps) {
 
   const handleClose = () => {
     if (!isSubmitting) {
-      setFormData({ name: '', description: '' });
+      setFormData({ name: '', description: '', visibility: 'public', cover_image: null });
+      setImagePreview(null);
       setErrors([]);
       onClose();
     }
@@ -77,7 +129,7 @@ export function CreateShelfModal({ isOpen, onClose }: CreateShelfModalProps) {
       
       {/* Modal */}
       <div className="absolute inset-0 flex items-center justify-center p-4">
-        <div className="relative bg-white rounded-lg shadow-xl w-full max-w-md">
+        <div className="relative bg-white rounded-lg shadow-xl w-full max-w-4xl">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-neutral-200">
           <h2 className="font-display font-semibold text-lg text-neutral-900">
@@ -95,51 +147,24 @@ export function CreateShelfModal({ isOpen, onClose }: CreateShelfModalProps) {
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          {/* Errores */}
-          {errors.length > 0 && (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-3">
-              <ul className="text-sm text-red-600 space-y-1">
-                {errors.map((error, index) => (
-                  <li key={index}>• {error}</li>
-                ))}
-              </ul>
-            </div>
-          )}
+        <form onSubmit={handleSubmit} className="p-6">
+          <ShelfFormErrors errors={errors} />
 
-          {/* Nombre */}
-          <div>
-            <label htmlFor="name" className="block text-sm font-medium text-neutral-700 mb-1">
-              Nombre de la estantería *
-            </label>
-            <Input
-              type="text"
-              value={formData.name}
-              onChange={(e) => handleInputChange('name', e.target.value)}
-              placeholder="Ej: Fantasía Épica"
-              disabled={isSubmitting}
-              className="w-full"
+          {/* Layout horizontal */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <ShelfBasicInfo
+              formData={formData}
+              onInputChange={handleInputChange}
+              onVisibilityChange={handleVisibilityChange}
+              isSubmitting={isSubmitting}
             />
-          </div>
 
-          {/* Descripción */}
-          <div>
-            <label htmlFor="description" className="block text-sm font-medium text-neutral-700 mb-1">
-              Descripción
-            </label>
-            <textarea
-              id="description"
-              value={formData.description}
-              onChange={(e) => handleInputChange('description', e.target.value)}
-              placeholder="Describe el tipo de libros que incluirás en esta estantería..."
-              disabled={isSubmitting}
-              rows={3}
-              maxLength={500}
-              className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 disabled:bg-neutral-50 disabled:text-neutral-500"
+            <ShelfCoverUpload
+              imagePreview={imagePreview}
+              onImageChange={handleImageChange}
+              onRemoveImage={handleRemoveImage}
+              isSubmitting={isSubmitting}
             />
-            <div className="text-xs text-neutral-500 mt-1">
-              {formData.description.length}/500 caracteres
-            </div>
           </div>
 
           {/* Botones */}

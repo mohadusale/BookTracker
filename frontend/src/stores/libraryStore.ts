@@ -12,6 +12,12 @@ const initialState = {
   loading: false,
   error: null as string | null,
   lastFetched: null as number | null,
+  // Paginación
+  currentPage: 1,
+  totalPages: 0,
+  totalCount: 0,
+  hasNextPage: false,
+  hasPreviousPage: false,
 };
 
 // Interface para las acciones del store
@@ -22,9 +28,15 @@ interface LibraryStore {
   loading: boolean;
   error: string | null;
   lastFetched: number | null;
+  // Paginación
+  currentPage: number;
+  totalPages: number;
+  totalCount: number;
+  hasNextPage: boolean;
+  hasPreviousPage: boolean;
 
   // Acciones
-  fetchUserBooks: () => Promise<void>;
+  fetchUserBooks: (page?: number) => Promise<void>;
   updateBookRating: (bookId: number, rating: number, readingStatusId: number) => Promise<void>;
   updateBookStatus: (bookId: number, status: 'N' | 'R' | 'C', readingStatusId: number) => Promise<void>;
   createReadingStatus: (bookId: number, status: 'N' | 'R' | 'C', rating?: number) => Promise<void>;
@@ -46,19 +58,27 @@ export const useLibraryStore = create<LibraryStore>()(
       ...initialState,
 
       // Fetch user books
-      fetchUserBooks: async () => {
+      fetchUserBooks: async (page: number = 1) => {
         try {
           set({ loading: true, error: null });
           
-          const readingStatuses = await libraryService.getUserReadingStatuses();
-          const mappedBooks = readingStatuses.map(mapReadingStatusToBookCard);
+          const response = await libraryService.getUserReadingStatuses(page);
+          const mappedBooks = response.results.map(mapReadingStatusToBookCard);
+          
+          // Calcular información de paginación
+          const totalPages = Math.ceil(response.count / 50); // 50 es el PAGE_SIZE del backend
           
           set({
             books: mappedBooks,
-            readingStatuses: readingStatuses,
+            readingStatuses: response.results,
             loading: false,
             error: null,
             lastFetched: Date.now(),
+            currentPage: page,
+            totalPages: totalPages,
+            totalCount: response.count,
+            hasNextPage: response.next !== null,
+            hasPreviousPage: response.previous !== null,
           });
         } catch (error) {
           const errorMessage = error instanceof Error ? error.message : ERROR_MESSAGES.UNKNOWN_ERROR;
@@ -68,6 +88,11 @@ export const useLibraryStore = create<LibraryStore>()(
             loading: false,
             error: errorMessage,
             lastFetched: null,
+            currentPage: 1,
+            totalPages: 0,
+            totalCount: 0,
+            hasNextPage: false,
+            hasPreviousPage: false,
           });
           throw error;
         }
@@ -169,7 +194,7 @@ export const useLibraryStore = create<LibraryStore>()(
           
           // Añadir al estado actual
           set(state => ({
-            readingStatuses: [...state.readingStatuses, newStatus],
+            readingStatuses: [...state.readingStatuses, newStatus as ReadingStatusWithBook],
             books: [...state.books, mapReadingStatusToBookCard(newStatus as ReadingStatusWithBook)],
           }));
 
@@ -236,6 +261,13 @@ export const useLibraryBooks = () => useLibraryStore(state => state.books);
 export const useLibraryLoading = () => useLibraryStore(state => state.loading);
 export const useLibraryError = () => useLibraryStore(state => state.error);
 export const useReadingStatuses = () => useLibraryStore(state => state.readingStatuses);
+
+// Selectores de paginación individuales
+export const useCurrentPage = () => useLibraryStore(state => state.currentPage);
+export const useTotalPages = () => useLibraryStore(state => state.totalPages);
+export const useTotalCount = () => useLibraryStore(state => state.totalCount);
+export const useHasNextPage = () => useLibraryStore(state => state.hasNextPage);
+export const useHasPreviousPage = () => useLibraryStore(state => state.hasPreviousPage);
 
 // Selector para obtener el estado de un libro específico
 export const useUserBookStatus = (bookId: number) => 

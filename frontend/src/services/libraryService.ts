@@ -11,15 +11,20 @@ const getAccessToken = (): string | null => {
 
 // Servicio para obtener los estados de lectura del usuario
 export const libraryService = {
-  // Obtener todos los estados de lectura del usuario actual
-  async getUserReadingStatuses(): Promise<ReadingStatusWithBook[]> {
+  // Obtener estados de lectura del usuario con paginación
+  async getUserReadingStatuses(page: number = 1): Promise<{
+    results: ReadingStatusWithBook[];
+    count: number;
+    next: string | null;
+    previous: string | null;
+  }> {
     try {
       const token = getAccessToken();
       if (!token) {
         throw new Error('No hay token de autenticación');
       }
 
-      const response = await fetch(`${API_BASE_URL}/reading-statuses/`, {
+      const response = await fetch(`${API_BASE_URL}/reading-statuses/?page=${page}`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -35,7 +40,12 @@ export const libraryService = {
       }
 
       const data = await response.json();
-      return data.results || data; // Manejar tanto paginación como lista simple
+      return {
+        results: data.results || [],
+        count: data.count || 0,
+        next: data.next,
+        previous: data.previous,
+      };
     } catch (error) {
       console.error('Error al obtener estados de lectura:', error);
       throw error;

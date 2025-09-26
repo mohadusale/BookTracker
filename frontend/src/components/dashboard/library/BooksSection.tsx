@@ -1,13 +1,17 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useCallback, memo } from 'react';
 import { Card } from '../../ui';
 import { Button } from '../../ui';
-import { Input } from '../../ui';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../ui';
 import { ImageWithFallback } from '../../ui';
 import { InteractiveStarRating } from '../../ui';
 import { BookDetailsModal } from '../../ui';
-import { Search, Eye, Loader2 } from 'lucide-react';
-import { useLibraryBooks, useLibraryLoading, useLibraryError, useLibraryActions } from '../../../stores';
+import { Pagination } from '../../ui';
+import { ErrorState } from '../../ui';
+import { LoadingState } from '../../ui';
+import { SearchInput } from '../../ui';
+import { StatusFilter } from '../../ui';
+import { Eye } from 'lucide-react';
+import { useLibraryBooks, useLibraryLoading, useLibraryError, useLibraryActions, useCurrentPage, useTotalPages, useTotalCount, useHasNextPage, useHasPreviousPage } from '../../../stores';
 import type { BookCardData } from '../../../types/library';
 import { useAuthStore } from '../../../stores';
 import { useBookDetailsModal } from '../../../hooks/useBookDetailsModal';
@@ -24,73 +28,47 @@ export function BooksSection() {
   const books = useLibraryBooks();
   const loading = useLibraryLoading();
   const error = useLibraryError();
+  const currentPage = useCurrentPage();
+  const totalPages = useTotalPages();
+  const totalCount = useTotalCount();
+  const hasNextPage = useHasNextPage();
+  const hasPreviousPage = useHasPreviousPage();
   const { fetchUserBooks, updateBookRating, clearError } = useLibraryActions();
-
-  // Obtener estado de autenticación
   const { isAuthenticated, tokens } = useAuthStore();
 
 
-  const filteredBooks = books
-    .filter(book => {
-      const matchesSearch = book.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                           book.author.toLowerCase().includes(searchQuery.toLowerCase());
-      
-      const matchesStatus = statusFilter === "all" || book.status === statusFilter;
-      
-      return matchesSearch && matchesStatus;
-    })
-    .sort((a, b) => {
-      switch (sortBy) {
-        case 'rating':
-          return b.rating - a.rating; // Mayor a menor
-        case 'rating-asc':
-          return a.rating - b.rating; // Menor a mayor
-        default:
-          return 0;
-      }
-    });
+  const filteredBooks = useMemo(() => {
+    return books
+      .filter(book => {
+        const matchesSearch = !searchQuery || 
+          book.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          book.author.toLowerCase().includes(searchQuery.toLowerCase());
+        return matchesSearch && (statusFilter === "all" || book.status === statusFilter);
+      })
+      .sort((a, b) => sortBy === 'rating-asc' ? a.rating - b.rating : b.rating - a.rating);
+  }, [books, searchQuery, statusFilter, sortBy]);
 
-
-  // Cargar datos del backend al montar el componente
   useEffect(() => {
-    const loadUserBooks = async () => {
-      // Verificar autenticación antes de cargar datos
-      if (!isAuthenticated || !tokens?.access) {
-        return;
-      }
-
-      try {
-        await fetchUserBooks();
-      } catch (error) {
-        console.error('Error al cargar libros:', error);
-      }
-    };
-
-    loadUserBooks();
+    if (isAuthenticated && tokens?.access) {
+      fetchUserBooks(1).catch(console.error);
+    }
   }, [isAuthenticated, tokens?.access, fetchUserBooks]);
 
-  const handleRatingChange = async (rating: number, bookId: number) => {
-    // Encontrar el libro en el estado actual
+  const handleRatingChange = useCallback(async (rating: number, bookId: number) => {
     const book = books.find(b => b.id === bookId);
-    if (!book) {
-      console.error('Libro no encontrado');
-      return;
+    if (book) {
+      updateBookRating(bookId, rating, book.readingStatusId).catch(console.error);
     }
+  }, [books, updateBookRating]);
 
-    try {
-      // Actualizar usando el store (ya maneja optimistic updates)
-      await updateBookRating(bookId, rating, book.readingStatusId);
-    } catch (error) {
-      console.error('Error al actualizar calificación:', error);
-    }
-  };
+  const handleViewBook = useCallback((book: BookCardData) => openModal(book), [openModal]);
 
-  const handleViewBook = (book: BookCardData) => {
-    // Los datos del libro ya incluyen toda la información del backend
-    openModal(book);
-  };
+  const handlePageChange = useCallback(async (page: number) => {
+    await fetchUserBooks(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [fetchUserBooks]);
 
-  const BookCard = ({ book }: { book: BookCardData }) => (
+  const BookCard = memo(({ book }: { book: BookCardData }) => (
     <Card className="group overflow-hidden bg-white hover:shadow-lg transition-all duration-200 border border-neutral-200 shadow-sm">
       <div className="relative">
         <div className="aspect-[2/3] bg-neutral-100 relative overflow-hidden">
@@ -100,7 +78,6 @@ export function BooksSection() {
             className="w-full h-full object-cover"
           />
           
-          {/* Estrellas flotantes sobre la imagen - solo para libros completados */}
           {book.status === 'C' && (
             <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2">
               <div className="bg-black/20 backdrop-blur-sm rounded-full px-2 py-1">
@@ -131,110 +108,51 @@ export function BooksSection() {
         </div>
       </div>
     </Card>
-  );
+  ));
 
-  // Mostrar estado de carga
+  BookCard.displayName = 'BookCard';
+
   if (loading) {
-    return (
-      <div className="flex items-center justify-center py-12">
-        <div className="text-center">
-          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-primary-500" />
-          <p className="text-neutral-600">Cargando tu biblioteca...</p>
-        </div>
-      </div>
-    );
+    return <LoadingState message="Cargando tu biblioteca..." />;
   }
 
-  // Mostrar error
   if (error) {
-    const isAuthError = error.includes('autenticado') || error.includes('token');
-    
     return (
-      <div className="text-center py-12">
-        <div className="w-16 h-16 bg-red-100 rounded-lg flex items-center justify-center mx-auto mb-4">
-          <Search className="h-6 w-6 text-red-500" />
-        </div>
-        <h3 className="font-display font-semibold text-lg text-neutral-900 mb-2">
-          {isAuthError ? 'Sesión expirada' : 'Error al cargar la biblioteca'}
-        </h3>
-        <p className="text-neutral-500 mb-4">{error}</p>
-        <div className="flex gap-2 justify-center">
-          {isAuthError ? (
-            <Button 
-              onClick={() => {
-                useAuthStore.getState().logout();
-                window.location.href = '/login';
-              }}
-            >
-              Ir al Login
-            </Button>
-          ) : (
-            <Button 
-              variant="outline" 
-              onClick={() => {
-                clearError();
-                fetchUserBooks();
-              }}
-            >
-              Reintentar
-            </Button>
-          )}
-        </div>
-      </div>
+      <ErrorState
+        error={error}
+        title="Error al cargar la biblioteca"
+        onRetry={() => {
+          clearError();
+          fetchUserBooks();
+        }}
+        onLogin={() => {
+          useAuthStore.getState().logout();
+          window.location.href = '/login';
+        }}
+      />
     );
   }
 
   return (
     <div className="space-y-6">
-      {/* Botones de estado */}
-      <div className="flex items-center justify-center">
-        <div className="flex bg-neutral-100 rounded-xl p-1 w-full max-w-md shadow-sm hover:shadow-md transition-shadow duration-200">
-          <button
-            onClick={() => setStatusFilter("C")}
-            className={`px-4 py-2 rounded-lg transition-all duration-200 font-medium text-sm flex-1 ${
-              statusFilter === "C"
-                ? "bg-white text-neutral-900 shadow-sm"
-                : "text-neutral-500 hover:text-neutral-900 hover:bg-white/50"
-            }`}
-          >
-            Finalizados
-          </button>
-          <button
-            onClick={() => setStatusFilter("R")}
-            className={`px-4 py-2 rounded-lg transition-all duration-200 font-medium text-sm flex-1 ${
-              statusFilter === "R"
-                ? "bg-white text-neutral-900 shadow-sm"
-                : "text-neutral-500 hover:text-neutral-900 hover:bg-white/50"
-            }`}
-          >
-            Leyendo
-          </button>
-          <button
-            onClick={() => setStatusFilter("N")}
-            className={`px-4 py-2 rounded-lg transition-all duration-200 font-medium text-sm flex-1 ${
-              statusFilter === "N"
-                ? "bg-white text-neutral-900 shadow-sm"
-                : "text-neutral-500 hover:text-neutral-900 hover:bg-white/50"
-            }`}
-          >
-            Por leer
-          </button>
-        </div>
-      </div>
+      <StatusFilter
+        value={statusFilter}
+        onChange={setStatusFilter}
+        options={[
+          { key: "C", label: "Finalizados" },
+          { key: "R", label: "Leyendo" },
+          { key: "N", label: "Por leer" }
+        ]}
+      />
 
-      {/* Filtros - Solo para Finalizados */}
-      {statusFilter === "C" && (
-        <div className="flex flex-col lg:flex-row gap-3 justify-center items-center">
-          <div className="relative w-full max-w-md">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-neutral-500" />
-            <Input
-              placeholder="Buscar por título o autor..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 h-10 border-neutral-200 bg-white shadow-sm hover:shadow-md transition-shadow duration-200"
-            />
-          </div>
-          
+      <div className="flex flex-col lg:flex-row gap-3 justify-center items-center">
+        <SearchInput
+          value={searchQuery}
+          onChange={setSearchQuery}
+          placeholder="Buscar por título o autor..."
+        />
+        
+        {statusFilter === "C" && (
           <Select value={sortBy} onValueChange={setSortBy}>
             <SelectTrigger className="w-48 h-10 border-neutral-200 bg-white shadow-sm hover:shadow-md transition-shadow duration-200">
               <SelectValue placeholder="Ordenar por">
@@ -247,51 +165,23 @@ export function BooksSection() {
               <SelectItem value="rating-asc">Calificación ↑</SelectItem>
             </SelectContent>
           </Select>
-        </div>
-      )}
+        )}
+      </div>
 
-      {/* Filtros - Para Leyendo y Por leer */}
-      {(statusFilter === "R" || statusFilter === "N") && (
-        <div className="flex justify-center">
-          <div className="relative w-full max-w-md">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-neutral-500" />
-            <Input
-              placeholder="Buscar por título o autor..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 h-10 border-neutral-200 bg-white shadow-sm hover:shadow-md transition-shadow duration-200"
-            />
-          </div>
-        </div>
-      )}
-
-      {/* Información */}
       <div className="flex justify-center items-center">
         <div className="text-sm text-neutral-600">
-          {filteredBooks.length === 1 
-            ? "1 libro encontrado" 
-            : `${filteredBooks.length} libros encontrados`
-          }
-          {searchQuery && (
-            <span className="ml-2 text-neutral-500">
-              para "{searchQuery}"
-            </span>
-          )}
+          {totalCount === 1 ? "1 libro encontrado" : `${totalCount} libros encontrados`}
+          {searchQuery && <span className="ml-2 text-neutral-500">para "{searchQuery}"</span>}
+          {totalPages > 1 && <span className="ml-2 text-neutral-500">(Página {currentPage} de {totalPages})</span>}
         </div>
         {searchQuery && (
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={() => setSearchQuery("")}
-            className="text-xs ml-4"
-          >
+          <Button variant="outline" size="sm" onClick={() => setSearchQuery("")} className="text-xs ml-4">
             Limpiar búsqueda
           </Button>
         )}
       </div>
 
-             {/* Grid de Libros */}
-             <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-3">
+      <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-3">
         {filteredBooks.map((book) => (
           <BookCard key={book.id} book={book} />
         ))}
@@ -300,20 +190,27 @@ export function BooksSection() {
       {filteredBooks.length === 0 && (
         <div className="text-center py-12">
           <div className="w-16 h-16 bg-neutral-100 rounded-lg flex items-center justify-center mx-auto mb-4">
-            <Search className="h-6 w-6 text-neutral-500" />
+            <div className="h-6 w-6 text-neutral-500">📚</div>
           </div>
           <h3 className="font-display font-semibold text-lg text-neutral-900 mb-2">No se encontraron libros</h3>
           <p className="text-neutral-500 mb-4">Intenta ajustar tus filtros de búsqueda</p>
           <Button variant="outline" onClick={() => {
             setSearchQuery("");
             setStatusFilter("all");
-          }}>
-            Limpiar filtros
-          </Button>
+          }}>Limpiar filtros</Button>
         </div>
       )}
 
-      {/* Modal de detalles del libro */}
+      {totalPages > 1 && (
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={handlePageChange}
+          hasNextPage={hasNextPage}
+          hasPreviousPage={hasPreviousPage}
+        />
+      )}
+
       <BookDetailsModal
         isOpen={isOpen}
         onClose={closeModal}

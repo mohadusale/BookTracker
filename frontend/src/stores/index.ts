@@ -14,6 +14,11 @@ export {
   useLibraryLoading,
   useLibraryError,
   useReadingStatuses,
+  useCurrentPage,
+  useTotalPages,
+  useTotalCount,
+  useHasNextPage,
+  useHasPreviousPage,
   useUserBookStatus,
   useBooksByStatus,
   useLibraryActions

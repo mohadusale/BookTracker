@@ -1,8 +1,6 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../../ui';
-import { Button } from '../../ui';
 import { ImageWithFallback } from '../../ui';
-import { CheckCircle } from 'lucide-react';
 
 export function FloatingCurrentlyReading() {
   const [progress, setProgress] = useState(60);

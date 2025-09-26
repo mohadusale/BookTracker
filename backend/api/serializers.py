@@ -227,15 +227,35 @@ class ReadingStatusWriteSerializer(serializers.ModelSerializer):
 # Bookshelf Serializers
 class BookshelfReadSerializer(serializers.ModelSerializer):
     user = serializers.StringRelatedField()
+    cover_image_url = serializers.SerializerMethodField()
+    auto_cover_books = serializers.SerializerMethodField()
 
     class Meta:
         model = Bookshelf
         fields = '__all__'
+    
+    def get_cover_image_url(self, obj):
+        """Retorna la URL de la portada personalizada o None si no existe"""
+        if obj.cover_image:
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(obj.cover_image.url)
+            return obj.cover_image.url
+        return None
+    
+    def get_auto_cover_books(self, obj):
+        """Retorna los libros para generar la portada automática"""
+        books = obj.get_auto_cover_books()
+        return [{
+            'id': book.id,
+            'title': book.title,
+            'cover_image_url': book.cover_image_url
+        } for book in books]
 
 class BookshelfWriteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Bookshelf
-        fields = ['id', 'name', 'description', 'created_at']
+        fields = ['id', 'name', 'description', 'visibility', 'cover_image', 'created_at']
 
 # Comment Serializers
 class CommentReadSerializer(serializers.ModelSerializer):
