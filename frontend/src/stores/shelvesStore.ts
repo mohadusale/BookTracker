@@ -117,17 +117,13 @@ export const useShelvesStore = create<ShelvesStore>()(
         const originalShelves = get().shelves;
 
         try {
-          // Optimistic update
-          set(state => ({
-            shelves: state.shelves.map(shelf =>
-              shelf.id === id
-                ? { ...shelf, ...data }
-                : shelf
-            ),
-          }));
-
           const updatedShelf = await shelvesService.updateBookshelf(id, data);
-          const shelfCardData = mapBookshelfToCardData(updatedShelf, 0);
+          
+          // Encontrar la estantería original para mantener el bookCount
+          const originalShelf = originalShelves.find(shelf => shelf.id === id);
+          const bookCount = originalShelf?.bookCount || 0;
+          
+          const shelfCardData = mapBookshelfToCardData(updatedShelf, bookCount);
 
           // Actualizar con datos reales del backend
           set(state => ({

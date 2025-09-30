@@ -14,14 +14,6 @@ const SHELF_COLORS = [
   'bg-orange-100',
 ];
 
-// Imágenes de portada por defecto para estanterías
-const DEFAULT_SHELF_COVERS = [
-  'https://images.unsplash.com/photo-1755541608494-5c02cf56e1f4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxib29rJTIwY292ZXIlMjBmYW50YXN5JTIwbm92ZWx8ZW58MXx8fHwxNzU4NjIwMzY5fDA&ixlib=rb-4.1.0&q=80&w=1080',
-  'https://images.unsplash.com/photo-1749803386662-00aa5b10fc20?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxib29rJTIwY292ZXIlMjBzY2llbmNlJTIwZmljdGlvbnxlbnwxfHx8fDE3NTg3MTQ3OTF8MA&ixlib=rb-4.1.0&q=80&w=1080',
-  'https://images.unsplash.com/photo-1758279771969-2cc6bcac3fd1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxib29rJTIwY292ZXIlMjBjbGFzc2ljJTIwbGl0ZXJhdHVyZXxlbnwxfHx8fDE3NTg2NDgyMDF8MA&ixlib=rb-4.1.0&q=80&w=1080',
-  'https://images.unsplash.com/photo-1599394463169-bd0bdf8e247a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxib29rJTIwY292ZXIlMjBteXN0ZXJ5JTIwdGhyaWxsZXJ8ZW58MXx8fDE3NTg3MTQ3OTF8MA&ixlib=rb-4.1.0&q=80&w=1080',
-];
-
 /**
  * Mapea los datos del backend a el formato esperado por ShelfCard
  */
@@ -35,9 +27,8 @@ export const mapBookshelfToCardData = (bookshelf: Bookshelf, bookCount: number =
   const colorIndex = bookshelf.id % SHELF_COLORS.length;
   const color = SHELF_COLORS[colorIndex];
   
-  // Generar imagen de portada basada en el ID
-  const coverIndex = bookshelf.id % DEFAULT_SHELF_COVERS.length;
-  const cover = DEFAULT_SHELF_COVERS[coverIndex];
+  // La cover se maneja directamente desde cover_image_url o será vacío para usar collage
+  const cover = bookshelf.cover_image_url || '';
 
   return {
     id: bookshelf.id,
@@ -48,6 +39,7 @@ export const mapBookshelfToCardData = (bookshelf: Bookshelf, bookCount: number =
     color: color,
     created_at: bookshelf.created_at,
     visibility: bookshelf.visibility || 'public',
+    auto_cover_books: bookshelf.auto_cover_books || [],
   };
 };
 
@@ -87,21 +79,6 @@ export const getShelfColor = (shelfName: string): string => {
   return SHELF_COLORS[index];
 };
 
-/**
- * Genera una imagen de portada automática para una estantería
- */
-export const getShelfCover = (shelfName: string): string => {
-  // Usar el hash del nombre para generar un índice consistente
-  let hash = 0;
-  for (let i = 0; i < shelfName.length; i++) {
-    const char = shelfName.charCodeAt(i);
-    hash = ((hash << 5) - hash) + char;
-    hash = hash & hash; // Convertir a 32bit integer
-  }
-  
-  const index = Math.abs(hash) % DEFAULT_SHELF_COVERS.length;
-  return DEFAULT_SHELF_COVERS[index];
-};
 
 /**
  * Calcula estadísticas de una estantería

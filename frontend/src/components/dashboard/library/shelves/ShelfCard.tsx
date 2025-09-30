@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import { Card, CardContent } from '../../../ui';
 import { Button } from '../../../ui';
+import { ShelfCoverCollage } from '../../../ui';
 import { BookOpen, Eye, MoreHorizontal, Trash2, Edit3 } from 'lucide-react';
 import { useShelvesActions } from '../../../../stores';
 import type { ShelfCardData } from '../../../../types/shelves';
 import { DeleteShelfModal } from './DeleteShelfModal';
+import { EditShelfModal } from './EditShelfModal';
 
 interface ShelfCardProps {
   shelf: ShelfCardData;
@@ -14,6 +16,7 @@ interface ShelfCardProps {
 export function ShelfCard({ shelf, onViewShelf }: ShelfCardProps) {
   const [showActions, setShowActions] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const { deleteShelf } = useShelvesActions();
 
@@ -25,8 +28,8 @@ export function ShelfCard({ shelf, onViewShelf }: ShelfCardProps) {
   };
 
   const handleEditShelf = () => {
-    // TODO: Implementar edición de estantería
-    console.log('Editar estantería:', shelf.name);
+    setShowEditModal(true);
+    setShowActions(false);
   };
 
   const handleDeleteClick = () => {
@@ -55,11 +58,11 @@ export function ShelfCard({ shelf, onViewShelf }: ShelfCardProps) {
   return (
     <Card className="group overflow-hidden bg-white hover:shadow-lg transition-all duration-200 border border-neutral-200 shadow-sm">
       <div className="relative">
-        <div className="aspect-[4/3] bg-neutral-100 relative overflow-hidden">
-          <img
-            src={shelf.cover}
-            alt={shelf.name}
-            className="w-full h-full object-cover"
+        <div className="aspect-[4/3] bg-neutral-100 relative overflow-hidden flex items-center justify-center">
+          <ShelfCoverCollage
+            books={shelf.auto_cover_books || []}
+            coverImageUrl={shelf.cover}
+            className="w-full h-full"
           />
           
           {/* Overlay con botón ver */}
@@ -138,6 +141,13 @@ export function ShelfCard({ shelf, onViewShelf }: ShelfCardProps) {
         onConfirm={handleDeleteConfirm}
         shelfName={shelf.name}
         isDeleting={isDeleting}
+      />
+
+      {/* Modal de edición */}
+      <EditShelfModal
+        isOpen={showEditModal}
+        onClose={() => setShowEditModal(false)}
+        shelf={shelf}
       />
 
     </Card>

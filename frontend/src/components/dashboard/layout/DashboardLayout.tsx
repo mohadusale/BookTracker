@@ -18,10 +18,12 @@ interface DashboardLayoutProps {
 const DashboardLayout: React.FC<DashboardLayoutProps> = memo(() => {
   const [activeSection, setActiveSection] = useState('home');
   const [shelfView, setShelfView] = useState<{ id: number; name: string } | null>(null);
+  const [showShelvesTab, setShowShelvesTab] = useState(false);
 
   const handleSectionChange = useCallback((section: string) => {
     setActiveSection(section);
     setShelfView(null); // Limpiar vista de estantería al cambiar sección
+    setShowShelvesTab(false); // Resetear tab de shelves
   }, []);
 
   const handleViewShelf = useCallback((shelfId: number, shelfName: string) => {
@@ -31,6 +33,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = memo(() => {
   const handleBackToShelves = useCallback(() => {
     setShelfView(null);
     setActiveSection('library');
+    setShowShelvesTab(true); // Indicar que debe mostrar el tab de shelves
   }, []);
 
   // Renderizar sección activa
@@ -52,7 +55,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = memo(() => {
       case 'home':
         return <HomePage />;
       case 'library':
-        return <LibraryPage onViewShelf={handleViewShelf} />;
+        return <LibraryPage onViewShelf={handleViewShelf} initialTab={showShelvesTab ? 'shelves' : 'books'} />;
       case 'discover':
         return <ExplorePage />;
       case 'community':

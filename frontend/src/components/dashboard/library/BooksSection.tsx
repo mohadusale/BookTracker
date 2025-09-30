@@ -1,20 +1,17 @@
-import { useState, useEffect, useMemo, useCallback, memo } from 'react';
-import { Card } from '../../ui';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Button } from '../../ui';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../ui';
-import { ImageWithFallback } from '../../ui';
-import { InteractiveStarRating } from '../../ui';
 import { BookDetailsModal } from '../../ui';
 import { Pagination } from '../../ui';
 import { ErrorState } from '../../ui';
 import { LoadingState } from '../../ui';
 import { SearchInput } from '../../ui';
 import { StatusFilter } from '../../ui';
-import { Eye } from 'lucide-react';
 import { useLibraryBooks, useLibraryLoading, useLibraryError, useLibraryActions, useCurrentPage, useTotalPages, useTotalCount, useHasNextPage, useHasPreviousPage } from '../../../stores';
 import type { BookCardData } from '../../../types/library';
 import { useAuthStore } from '../../../stores';
 import { useBookDetailsModal } from '../../../hooks/useBookDetailsModal';
+import { BookCard } from './BookCard';
 
 export function BooksSection() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -68,49 +65,6 @@ export function BooksSection() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [fetchUserBooks]);
 
-  const BookCard = memo(({ book }: { book: BookCardData }) => (
-    <Card className="group overflow-hidden bg-white hover:shadow-lg transition-all duration-200 border border-neutral-200 shadow-sm">
-      <div className="relative">
-        <div className="aspect-[2/3] bg-neutral-100 relative overflow-hidden">
-          <ImageWithFallback
-            src={book.cover}
-            alt={book.title}
-            className="w-full h-full object-cover"
-          />
-          
-          {book.status === 'C' && (
-            <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2">
-              <div className="bg-black/20 backdrop-blur-sm rounded-full px-2 py-1">
-                <InteractiveStarRating 
-                  rating={book.rating} 
-                  size="sm" 
-                  showValue={false}
-                  bookStatus={book.status as 'N' | 'R' | 'C'}
-                  onRatingChange={handleRatingChange}
-                  bookId={book.id}
-                  disabled={true}
-                />
-              </div>
-            </div>
-          )}
-          
-          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-200 flex items-center justify-center opacity-0 group-hover:opacity-100">
-            <Button 
-              size="sm" 
-              variant="secondary" 
-              className="bg-white/95 hover:bg-white text-xs px-2 py-1"
-              onClick={() => handleViewBook(book)}
-            >
-              <Eye className="h-3 w-3 mr-1" />
-              Ver
-            </Button>
-          </div>
-        </div>
-      </div>
-    </Card>
-  ));
-
-  BookCard.displayName = 'BookCard';
 
   if (loading) {
     return <LoadingState message="Cargando tu biblioteca..." />;
@@ -183,7 +137,13 @@ export function BooksSection() {
 
       <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-3">
         {filteredBooks.map((book) => (
-          <BookCard key={book.id} book={book} />
+          <BookCard 
+            key={book.id} 
+            book={book} 
+            onViewBook={handleViewBook}
+            onRatingChange={handleRatingChange}
+            disableRating={true}
+          />
         ))}
       </div>
 

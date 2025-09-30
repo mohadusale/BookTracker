@@ -152,11 +152,63 @@ export const shelvesService = {
   // Actualizar una estantería existente
   async updateBookshelf(id: number, data: UpdateBookshelfData): Promise<Bookshelf> {
     try {
-      const response = await makeAuthenticatedRequest(`${API_BASE_URL}${API_ENDPOINTS.SHELVES.UPDATE(id)}`, {
-        method: 'PATCH',
-        body: JSON.stringify(data),
-      });
-      return await response.json();
+      const token = getAccessToken();
+      if (!token) {
+        throw new Error('No hay token de autenticación');
+      }
+
+      // Si hay una imagen o se solicita eliminar la imagen, usar FormData
+      if (data.cover_image || data.remove_cover_image) {
+        const formData = new FormData();
+        
+        if (data.name !== undefined) {
+          formData.append('name', data.name);
+        }
+        if (data.description !== undefined) {
+          formData.append('description', data.description);
+        }
+        if (data.visibility !== undefined) {
+          formData.append('visibility', data.visibility);
+        }
+        if (data.cover_image) {
+          formData.append('cover_image', data.cover_image);
+        }
+        if (data.remove_cover_image) {
+          formData.append('cover_image', ''); // Enviar vacío para eliminar
+        }
+
+        const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.SHELVES.UPDATE(id)}`, {
+          method: 'PATCH',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+          body: formData,
+        });
+
+        if (!response.ok) {
+          if (response.status === 400) {
+            const errorData = await response.json();
+            console.error('Error de validación del backend:', errorData);
+            throw new Error(`Error de validación: ${JSON.stringify(errorData)}`);
+          }
+          throw new Error(`Error del servidor: ${response.status}`);
+        }
+
+        return await response.json();
+      } else {
+        // Sin imagen, usar JSON normal
+        const jsonData: Record<string, string> = {};
+        if (data.name !== undefined) jsonData.name = data.name;
+        if (data.description !== undefined) jsonData.description = data.description;
+        if (data.visibility !== undefined) jsonData.visibility = data.visibility;
+
+        const response = await makeAuthenticatedRequest(`${API_BASE_URL}${API_ENDPOINTS.SHELVES.UPDATE(id)}`, {
+          method: 'PATCH',
+          body: JSON.stringify(jsonData),
+        });
+        
+        return await response.json();
+      }
     } catch (error) {
       console.error('Error al actualizar estantería:', error);
       throw error;

@@ -225,10 +225,19 @@ class ReadingStatusWriteSerializer(serializers.ModelSerializer):
         return data
 
 # Bookshelf Serializers
+class BookshelfEntrySerializer(serializers.ModelSerializer):
+    book = BookReadSerializer(read_only=True)
+    
+    class Meta:
+        model = BookshelfEntry
+        fields = ['id', 'book', 'added_at']
+
 class BookshelfReadSerializer(serializers.ModelSerializer):
     user = serializers.StringRelatedField()
     cover_image_url = serializers.SerializerMethodField()
     auto_cover_books = serializers.SerializerMethodField()
+    book_count = serializers.SerializerMethodField()
+    entries = BookshelfEntrySerializer(many=True, read_only=True)
 
     class Meta:
         model = Bookshelf
@@ -251,11 +260,32 @@ class BookshelfReadSerializer(serializers.ModelSerializer):
             'title': book.title,
             'cover_image_url': book.cover_image_url
         } for book in books]
+    
+    def get_book_count(self, obj):
+        """Retorna el número de libros en la estantería"""
+        return obj.entries.count()
 
 class BookshelfWriteSerializer(serializers.ModelSerializer):
+    cover_image = serializers.ImageField(required=False, allow_null=True)
+    
     class Meta:
         model = Bookshelf
         fields = ['id', 'name', 'description', 'visibility', 'cover_image', 'created_at']
+    
+    def update(self, instance, validated_data):
+        """
+        Maneja la actualización, incluyendo la eliminación de la imagen si se solicita
+        """
+        # Si cover_image está en los datos y es None o vacío, eliminar la imagen
+        if 'cover_image' in validated_data:
+            cover_image = validated_data.get('cover_image')
+            if cover_image is None or cover_image == '':
+                # Eliminar la imagen existente
+                if instance.cover_image:
+                    instance.cover_image.delete(save=False)
+                validated_data['cover_image'] = None
+        
+        return super().update(instance, validated_data)
 
 # Comment Serializers
 class CommentReadSerializer(serializers.ModelSerializer):

@@ -1,19 +1,23 @@
 import { useState, useEffect, useMemo, useCallback, memo, useRef } from 'react';
 import { Button } from '../../../ui';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../../ui';
-import { ImageWithFallback } from '../../../ui';
-import { InteractiveStarRating } from '../../../ui';
 import { BookDetailsModal } from '../../../ui';
 import { ErrorState } from '../../../ui';
 import { LoadingState } from '../../../ui';
 import { SearchInput } from '../../../ui';
-import { ArrowLeft, Eye, BookOpen, MoreHorizontal, Edit3, Trash2, Settings } from 'lucide-react';
+import { ArrowLeft, BookOpen, MoreHorizontal, Edit3, Trash2, Plus } from 'lucide-react';
 import { useBookDetailsModal } from '../../../../hooks/useBookDetailsModal';
 import { ShelfCoverCollage } from '../../../ui/ShelfCoverCollage';
-import { getVisibilityText, getVisibilityColor } from '../../../../utils/shelfCoverUtils';
+import { getVisibilityText } from '../../../../utils/shelfCoverUtils';
 import { shelvesService } from '../../../../services/shelvesService';
+import { useShelvesActions, useLibraryStore, useLibraryActions } from '../../../../stores';
+import { useAuthStore } from '../../../../stores/authStore';
+import { EditShelfModal } from './EditShelfModal';
+import { DeleteShelfModal } from './DeleteShelfModal';
+import { AddBooksToShelfModal } from './AddBooksToShelfModal';
+import { BookCard } from '../BookCard';
 import type { BookCardData } from '../../../../types/library';
-import type { AutoCoverBook } from '../../../../types/shelves';
+import type { ShelfCardData } from '../../../../types/shelves';
 
 interface ShelfViewProps {
   shelfId: number;
@@ -38,14 +42,63 @@ export const ShelfView = memo(function ShelfView({ shelfId, shelfName, onBack }:
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showOptions, setShowOptions] = useState(false);
-  const [shelfInfo, setShelfInfo] = useState<{
-    visibility: 'public' | 'private';
-    cover_image_url?: string;
-    auto_cover_books?: AutoCoverBook[];
-  } | null>(null);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showAddBooksModal, setShowAddBooksModal] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [shelfInfo, setShelfInfo] = useState<ShelfCardData | null>(null);
   const optionsRef = useRef<HTMLDivElement>(null);
 
   const { selectedBook, isOpen, openModal, closeModal } = useBookDetailsModal();
+  const { deleteShelf } = useShelvesActions();
+  const { fetchUserBooks } = useLibraryActions();
+  const getUserBookStatus = useLibraryStore(state => state.getUserBookStatus);
+  const { isAuthenticated, tokens } = useAuthStore();
+
+  // Función para recargar los datos de la estantería
+  const reloadShelfData = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      // Cargar datos de la estantería desde el API
+      const shelfData = await shelvesService.getBookshelf(shelfId);
+      
+      // Mapear los libros de la estantería al formato esperado
+      const shelfBooks: ShelfBook[] = shelfData.entries?.map((entry: any) => {
+        // Obtener el reading status del store (más eficiente que query al backend)
+        const readingStatus = getUserBookStatus(entry.book.id);
+        
+        return {
+          id: entry.book.id,
+          title: entry.book.title,
+          author: entry.book.authors?.[0] || 'Autor desconocido',
+          cover: entry.book.cover_image_url || '',
+          rating: readingStatus?.rating || 0,
+          status: readingStatus?.status || 'N',
+          readingStatusId: readingStatus?.id || 0
+        };
+      }) || [];
+      
+      setBooks(shelfBooks);
+      setShelfInfo({
+        id: shelfData.id,
+        name: shelfData.name,
+        description: shelfData.description || '',
+        visibility: shelfData.visibility || 'public',
+        bookCount: shelfData.book_count || 0,
+        cover: shelfData.cover_image_url || '',
+        color: '',
+        created_at: shelfData.created_at,
+        auto_cover_books: shelfData.auto_cover_books || []
+      });
+    } catch (error) {
+      console.error('Error al cargar datos de la estantería:', error);
+      setError('Error al cargar los datos de la estantería');
+    } finally {
+      setLoading(false);
+    }
+  }, [shelfId]);
 
   const filteredBooks = useMemo(() => {
     return books
@@ -67,41 +120,12 @@ export const ShelfView = memo(function ShelfView({ shelfId, shelfName, onBack }:
   }, [books, searchQuery, sortBy]);
 
   useEffect(() => {
-    const loadShelfData = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        
-        // Cargar datos de la estantería desde el API
-        const shelfData = await shelvesService.getBookshelf(shelfId);
-        
-        // Mapear los libros de la estantería al formato esperado
-        const shelfBooks: ShelfBook[] = shelfData.entries?.map((entry: any) => ({
-          id: entry.book.id,
-          title: entry.book.title,
-          author: entry.book.authors?.[0]?.name || 'Autor desconocido',
-          cover: entry.book.cover_image_url || '',
-          rating: entry.book.rating || 0,
-          status: entry.book.reading_status?.status || 'N',
-          readingStatusId: entry.book.reading_status?.id || 0
-        })) || [];
-        
-        setBooks(shelfBooks);
-        setShelfInfo({
-          visibility: shelfData.visibility || 'public',
-          cover_image_url: shelfData.cover_image_url,
-          auto_cover_books: shelfData.auto_cover_books || []
-        });
-      } catch (error) {
-        console.error('Error al cargar datos de la estantería:', error);
-        setError('Error al cargar los datos de la estantería');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadShelfData();
-  }, [shelfId]);
+    // Cargar reading statuses primero para tener los datos disponibles
+    if (isAuthenticated && tokens?.access) {
+      fetchUserBooks(1).catch(console.error);
+    }
+    reloadShelfData();
+  }, [reloadShelfData, isAuthenticated, tokens?.access, fetchUserBooks]);
 
   // Cerrar menú de opciones al hacer clic fuera
   useEffect(() => {
@@ -127,19 +151,39 @@ export const ShelfView = memo(function ShelfView({ shelfId, shelfName, onBack }:
   }, []);
 
   const handleEditShelf = useCallback(() => {
-    // TODO: Implementar edición de estantería
+    setShowEditModal(true);
     setShowOptions(false);
   }, []);
 
-  const handleDeleteShelf = useCallback(() => {
-    // TODO: Implementar eliminación de estantería
+  const handleEditModalClose = useCallback(() => {
+    setShowEditModal(false);
+    // Recargar datos para reflejar los cambios
+    reloadShelfData();
+  }, [reloadShelfData]);
+
+  const handleBooksAdded = useCallback(() => {
+    // Recargar datos para mostrar los nuevos libros
+    reloadShelfData();
+  }, [reloadShelfData]);
+
+  const handleDeleteClick = useCallback(() => {
+    setShowDeleteModal(true);
     setShowOptions(false);
   }, []);
 
-  const handleShelfSettings = useCallback(() => {
-    // TODO: Implementar configuración de estantería
-    setShowOptions(false);
-  }, []);
+  const handleDeleteConfirm = useCallback(async () => {
+    try {
+      setIsDeleting(true);
+      await deleteShelf(shelfId);
+      setShowDeleteModal(false);
+      // Volver a la sección de estanterías después de eliminar
+      onBack();
+    } catch (error) {
+      console.error('Error al eliminar estantería:', error);
+    } finally {
+      setIsDeleting(false);
+    }
+  }, [shelfId, deleteShelf, onBack]);
 
   if (loading) {
     return <LoadingState message="Cargando libros de la estantería..." />;
@@ -155,54 +199,11 @@ export const ShelfView = memo(function ShelfView({ shelfId, shelfName, onBack }:
     );
   }
 
-  const BookCard = memo(({ book }: { book: ShelfBook }) => (
-    <div className="group overflow-hidden bg-white hover:shadow-lg transition-all duration-200 border border-neutral-200 shadow-sm rounded-lg">
-      <div className="relative">
-        <div className="aspect-[2/3] bg-neutral-100 relative overflow-hidden">
-          <ImageWithFallback
-            src={book.cover}
-            alt={book.title}
-            className="w-full h-full object-cover"
-          />
-          
-          {book.status === 'C' && (
-            <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2">
-              <div className="bg-black/20 backdrop-blur-sm rounded-full px-2 py-1">
-                <InteractiveStarRating 
-                  rating={book.rating} 
-                  size="sm" 
-                  showValue={false}
-                  bookStatus={book.status}
-                  onRatingChange={handleRatingChange}
-                  bookId={book.id}
-                  disabled={true}
-                />
-              </div>
-            </div>
-          )}
-          
-          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-200 flex items-center justify-center opacity-0 group-hover:opacity-100">
-            <Button 
-              size="sm" 
-              variant="secondary" 
-              className="bg-white/95 hover:bg-white text-xs px-2 py-1"
-              onClick={() => handleViewBook(book as BookCardData)}
-            >
-              <Eye className="h-3 w-3 mr-1" />
-              Ver
-            </Button>
-          </div>
-        </div>
-      </div>
-    </div>
-  ));
-
-  BookCard.displayName = 'BookCard';
 
   return (
     <div className="space-y-6">
-        {/* Header con botón de regreso */}
-        <div className="flex items-center gap-4 mb-8">
+        {/* Header con botón de regreso y añadir libros */}
+        <div className="flex items-center justify-between mb-8">
           <Button
             variant="outline"
             size="sm"
@@ -211,6 +212,14 @@ export const ShelfView = memo(function ShelfView({ shelfId, shelfName, onBack }:
           >
             <ArrowLeft className="h-4 w-4" />
             Volver a Estanterías
+          </Button>
+
+          <Button
+            onClick={() => setShowAddBooksModal(true)}
+            className="bg-primary-500 hover:bg-primary-600 text-white flex items-center gap-2"
+          >
+            <Plus className="h-4 w-4" />
+            Añadir libros
           </Button>
         </div>
 
@@ -239,16 +248,9 @@ export const ShelfView = memo(function ShelfView({ shelfId, shelfName, onBack }:
                   Editar estantería
                 </button>
                 <button
-                  onClick={handleShelfSettings}
-                  className="w-full px-4 py-2 text-left text-sm text-neutral-700 hover:bg-neutral-50 flex items-center gap-2"
-                >
-                  <Settings className="h-4 w-4" />
-                  Configuración
-                </button>
-                <hr className="my-1" />
-                <button
-                  onClick={handleDeleteShelf}
-                  className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
+                  onClick={handleDeleteClick}
+                  disabled={isDeleting}
+                  className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2 disabled:opacity-50"
                 >
                   <Trash2 className="h-4 w-4" />
                   Eliminar estantería
@@ -262,20 +264,20 @@ export const ShelfView = memo(function ShelfView({ shelfId, shelfName, onBack }:
           {/* Portada de la estantería */}
           <ShelfCoverCollage 
             books={shelfInfo?.auto_cover_books || []}
-            coverImageUrl={shelfInfo?.cover_image_url}
+            coverImageUrl={shelfInfo?.cover}
             className="w-32 h-48 flex-shrink-0"
           />
           
           {/* Información de la estantería */}
           <div className="flex-1 min-w-0">
-            <p className={`text-sm mb-2 ${getVisibilityColor(shelfInfo?.visibility || 'public')}`}>
+            <p className="text-sm mb-2 text-neutral-900">
               {getVisibilityText(shelfInfo?.visibility || 'public')}
             </p>
             <h1 className="font-display font-bold text-4xl lg:text-5xl xl:text-6xl text-neutral-900 mb-4 leading-tight">{shelfName}</h1>
             <div className="flex items-center gap-4 text-sm text-neutral-600">
               <div className="flex items-center gap-1">
                 <BookOpen className="h-4 w-4" />
-                <span>{books.length} {books.length === 1 ? 'libro' : 'libros'}</span>
+                <span>{shelfInfo?.bookCount || 0} {(shelfInfo?.bookCount || 0) === 1 ? 'libro' : 'libros'}</span>
               </div>
             </div>
           </div>
@@ -313,7 +315,13 @@ export const ShelfView = memo(function ShelfView({ shelfId, shelfName, onBack }:
         {filteredBooks.length > 0 ? (
           <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-3">
             {filteredBooks.map((book) => (
-              <BookCard key={book.id} book={book} />
+              <BookCard 
+                key={book.id} 
+                book={book as BookCardData} 
+                onViewBook={handleViewBook}
+                onRatingChange={handleRatingChange}
+                disableRating={true}
+              />
             ))}
           </div>
         ) : (
@@ -344,6 +352,34 @@ export const ShelfView = memo(function ShelfView({ shelfId, shelfName, onBack }:
         onClose={closeModal}
         book={selectedBook}
         onRatingChange={handleRatingChange}
+      />
+
+      {/* Modal de edición */}
+      {shelfInfo && (
+        <EditShelfModal
+          isOpen={showEditModal}
+          onClose={handleEditModalClose}
+          shelf={shelfInfo}
+        />
+      )}
+
+      {/* Modal de confirmación de eliminación */}
+      <DeleteShelfModal
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        onConfirm={handleDeleteConfirm}
+        shelfName={shelfName}
+        isDeleting={isDeleting}
+      />
+
+      {/* Modal de añadir libros */}
+      <AddBooksToShelfModal
+        isOpen={showAddBooksModal}
+        onClose={() => setShowAddBooksModal(false)}
+        shelfId={shelfId}
+        shelfName={shelfName}
+        booksInShelf={books.map(book => book.id)}
+        onBooksAdded={handleBooksAdded}
       />
     </div>
   );

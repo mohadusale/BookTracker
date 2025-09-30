@@ -5,10 +5,11 @@ import { ShelvesSection } from './shelves/ShelvesSection';
 
 interface LibraryPageProps {
   onViewShelf?: (shelfId: number, shelfName: string) => void;
+  initialTab?: 'books' | 'shelves';
 }
 
-const LibraryPage: React.FC<LibraryPageProps> = ({ onViewShelf }) => {
-  const [activeTab, setActiveTab] = useState<'books' | 'shelves'>('books');
+const LibraryPage: React.FC<LibraryPageProps> = ({ onViewShelf, initialTab = 'books' }) => {
+  const [activeTab, setActiveTab] = useState<'books' | 'shelves'>(initialTab);
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">

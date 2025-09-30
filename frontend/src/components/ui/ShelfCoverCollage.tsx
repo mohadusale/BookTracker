@@ -13,10 +13,22 @@ export const ShelfCoverCollage = memo(function ShelfCoverCollage({
   coverImageUrl,
   className = "w-32 h-48" 
 }: ShelfCoverCollageProps) {
-  // Si hay una imagen personalizada, mostrarla
+  // Si no hay libros, siempre mostrar el placeholder (independiente de si hay imagen personalizada)
+  if (!books || books.length === 0) {
+    return (
+      <div className={`${className} bg-neutral-100 overflow-hidden flex items-center justify-center`}>
+        <div className="text-neutral-400 text-center">
+          <div className="text-2xl mb-1">📚</div>
+          <div className="text-xs">Sin libros</div>
+        </div>
+      </div>
+    );
+  }
+
+  // Si hay una imagen personalizada y hay libros, mostrarla
   if (coverImageUrl) {
     return (
-      <div className={`${className} bg-neutral-100 rounded-lg shadow-md border border-neutral-200 overflow-hidden`}>
+      <div className={`${className} bg-neutral-100 overflow-hidden`}>
         <ImageWithFallback
           src={coverImageUrl}
           alt="Portada personalizada de la estantería"
@@ -26,20 +38,9 @@ export const ShelfCoverCollage = memo(function ShelfCoverCollage({
     );
   }
 
-  if (!books || books.length === 0) {
-    return (
-      <div className={`${className} bg-neutral-100 rounded-lg shadow-md border border-neutral-200 overflow-hidden flex items-center justify-center`}>
-        <div className="text-neutral-400 text-center">
-          <div className="text-2xl mb-1">📚</div>
-          <div className="text-xs">Sin libros</div>
-        </div>
-      </div>
-    );
-  }
-
   if (books.length === 1) {
     return (
-      <div className={`${className} bg-neutral-100 rounded-lg shadow-md border border-neutral-200 overflow-hidden`}>
+      <div className={`${className} bg-neutral-100 overflow-hidden`}>
         <ImageWithFallback
           src={books[0].cover_image_url}
           alt={books[0].title}
@@ -51,7 +52,7 @@ export const ShelfCoverCollage = memo(function ShelfCoverCollage({
 
   if (books.length <= 3) {
     return (
-      <div className={`${className} bg-neutral-100 rounded-lg shadow-md border border-neutral-200 overflow-hidden`}>
+      <div className={`${className} bg-neutral-100 overflow-hidden`}>
         <ImageWithFallback
           src={books[0].cover_image_url}
           alt={books[0].title}
@@ -63,7 +64,7 @@ export const ShelfCoverCollage = memo(function ShelfCoverCollage({
 
   // Para 4+ libros, mostrar collage de 2x2
   return (
-    <div className={`${className} bg-neutral-100 rounded-lg shadow-md border border-neutral-200 overflow-hidden grid grid-cols-2 gap-1`}>
+    <div className={`${className} bg-neutral-100 overflow-hidden grid grid-cols-2 gap-1`}>
       {books.slice(0, 4).map((book, index) => (
         <div key={book.id} className="relative">
           <ImageWithFallback

@@ -36,9 +36,10 @@ export interface ShelfCardData {
   description: string;
   visibility: 'public' | 'private';
   bookCount: number;
-  cover: string; // URL de la imagen de portada (personalizada, automática o placeholder)
+  cover: string; // URL de la imagen de portada personalizada (vacío si no hay)
   color: string; // Clase CSS para el color de fondo
   created_at: string;
+  auto_cover_books?: AutoCoverBook[]; // Libros para generar el collage automático
 }
 
 // Tipo para libros en una estantería
@@ -71,6 +72,7 @@ export interface UpdateBookshelfData {
   description?: string;
   visibility?: 'public' | 'private';
   cover_image?: File;
+  remove_cover_image?: boolean;
 }
 
 // Tipo para respuestas de la API
