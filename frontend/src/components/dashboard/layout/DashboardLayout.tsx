@@ -2,6 +2,7 @@ import React, { useState, useCallback, memo, Suspense, lazy } from 'react';
 import { TopNavigation } from './TopNavigation';
 import DashboardErrorBoundary from './ErrorBoundary';
 import PageLoader from './PageLoader';
+import { useDataRefresh } from '../../../hooks/useDataRefresh';
 
 // Lazy loading de secciones
 const HomePage = lazy(() => import('../home/HomePage'));
@@ -19,6 +20,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = memo(() => {
   const [activeSection, setActiveSection] = useState('home');
   const [shelfView, setShelfView] = useState<{ id: number; name: string } | null>(null);
   const [showShelvesTab, setShowShelvesTab] = useState(false);
+  const { refreshShelves } = useDataRefresh();
 
   const handleSectionChange = useCallback((section: string) => {
     setActiveSection(section);
@@ -34,7 +36,9 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = memo(() => {
     setShelfView(null);
     setActiveSection('library');
     setShowShelvesTab(true); // Indicar que debe mostrar el tab de shelves
-  }, []);
+    // Refrescar las estanterías para obtener contadores actualizados
+    refreshShelves();
+  }, [refreshShelves]);
 
   // Renderizar sección activa
   const renderActiveSection = () => {

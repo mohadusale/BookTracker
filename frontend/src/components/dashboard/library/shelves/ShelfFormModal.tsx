@@ -25,7 +25,7 @@ export function ShelfFormModal({ isOpen, onClose, mode, shelf }: ShelfFormModalP
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [removeCoverImage, setRemoveCoverImage] = useState(false);
 
-  const { createShelf, updateShelf } = useShelvesActions();
+  const { createShelf, updateShelf, fetchShelves } = useShelvesActions();
 
   // Cargar datos cuando se abre el modal (para modo edit)
   useEffect(() => {
@@ -132,6 +132,9 @@ export function ShelfFormModal({ isOpen, onClose, mode, shelf }: ShelfFormModalP
           cover_image: formData.cover_image || undefined,
           remove_cover_image: removeCoverImage,
         });
+        
+        // Refrescar la lista de estanterías para obtener datos actualizados
+        await fetchShelves();
       }
       
       handleClose();

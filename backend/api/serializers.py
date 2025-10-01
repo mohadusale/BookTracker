@@ -267,17 +267,26 @@ class BookshelfReadSerializer(serializers.ModelSerializer):
 
 class BookshelfWriteSerializer(serializers.ModelSerializer):
     cover_image = serializers.ImageField(required=False, allow_null=True)
+    remove_cover_image = serializers.BooleanField(write_only=True, required=False)
     
     class Meta:
         model = Bookshelf
-        fields = ['id', 'name', 'description', 'visibility', 'cover_image', 'created_at']
+        fields = ['id', 'name', 'description', 'visibility', 'cover_image', 'remove_cover_image', 'created_at']
     
     def update(self, instance, validated_data):
         """
         Maneja la actualización, incluyendo la eliminación de la imagen si se solicita
         """
-        # Si cover_image está en los datos y es None o vacío, eliminar la imagen
-        if 'cover_image' in validated_data:
+        # Verificar si se solicita eliminar la imagen
+        remove_cover_image = validated_data.pop('remove_cover_image', False)
+        
+        if remove_cover_image:
+            # Eliminar la imagen existente
+            if instance.cover_image:
+                instance.cover_image.delete(save=False)
+            validated_data['cover_image'] = None
+        elif 'cover_image' in validated_data:
+            # Si cover_image está en los datos y es None o vacío, eliminar la imagen
             cover_image = validated_data.get('cover_image')
             if cover_image is None or cover_image == '':
                 # Eliminar la imagen existente

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Card, CardContent } from '../../../ui';
 import { Button } from '../../../ui';
 import { ShelfCoverCollage } from '../../../ui';
-import { BookOpen, Eye, MoreHorizontal, Trash2, Edit3 } from 'lucide-react';
+import { Eye, MoreHorizontal, Trash2, Edit3 } from 'lucide-react';
 import { useShelvesActions } from '../../../../stores';
 import type { ShelfCardData } from '../../../../types/shelves';
 import { DeleteShelfModal } from './DeleteShelfModal';
@@ -113,25 +113,10 @@ export function ShelfCard({ shelf, onViewShelf }: ShelfCardProps) {
         </div>
       </div>
       
-      <CardContent className="p-4 space-y-3">
-        <div className="space-y-1">
-          <h3 className="font-display font-semibold text-base text-neutral-900 leading-tight">
-            {shelf.name}
-          </h3>
-          <p className="text-sm text-neutral-500 line-clamp-2">
-            {shelf.description || 'Sin descripción'}
-          </p>
-        </div>
-        
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-1 text-sm text-neutral-500">
-            <BookOpen className="h-4 w-4" />
-            <span>{shelf.bookCount} {shelf.bookCount === 1 ? 'libro' : 'libros'}</span>
-          </div>
-          <div className="text-xs text-neutral-400">
-            {new Date(shelf.created_at).toLocaleDateString()}
-          </div>
-        </div>
+      <CardContent className="p-4">
+        <h3 className="font-display font-semibold text-base text-neutral-900 leading-tight text-center">
+          {shelf.name}
+        </h3>
       </CardContent>
 
       {/* Modal de confirmación de eliminación */}

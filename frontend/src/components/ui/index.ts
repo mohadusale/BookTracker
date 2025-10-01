@@ -24,4 +24,6 @@ export { ErrorState } from './ErrorState';
 export { LoadingState } from './LoadingState';
 export { SearchInput } from './SearchInput';
 export { StatusFilter } from './StatusFilter';
+export { LibraryStatusFilter } from './LibraryStatusFilter';
+export { RatingFilter } from './RatingFilter';
 export { ShelfCoverCollage } from './ShelfCoverCollage';

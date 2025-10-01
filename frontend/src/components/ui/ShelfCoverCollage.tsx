@@ -40,31 +40,65 @@ export const ShelfCoverCollage = memo(function ShelfCoverCollage({
 
   if (books.length === 1) {
     return (
-      <div className={`${className} bg-neutral-100 overflow-hidden`}>
-        <ImageWithFallback
-          src={books[0].cover_image_url}
-          alt={books[0].title}
-          className="w-full h-full object-cover"
-        />
+      <div className={`${className} bg-neutral-100 overflow-hidden flex items-center justify-center p-1`}>
+        <div className="w-full h-full max-w-[85%] max-h-[90%] relative">
+          <ImageWithFallback
+            src={books[0].cover_image_url}
+            alt={books[0].title}
+            className="w-full h-full object-contain shadow-sm"
+          />
+        </div>
       </div>
     );
   }
 
-  if (books.length <= 3) {
+  if (books.length === 2) {
     return (
-      <div className={`${className} bg-neutral-100 overflow-hidden`}>
-        <ImageWithFallback
-          src={books[0].cover_image_url}
-          alt={books[0].title}
-          className="w-full h-full object-cover"
-        />
+      <div className={`${className} bg-neutral-100 overflow-hidden grid grid-cols-2 gap-0.5`}>
+        {books.map((book) => (
+          <div key={book.id} className="relative">
+            <ImageWithFallback
+              src={book.cover_image_url}
+              alt={book.title}
+              className="w-full h-full object-cover"
+            />
+          </div>
+        ))}
       </div>
     );
   }
 
-  // Para 4+ libros, mostrar collage de 2x2
+  if (books.length === 3) {
+    return (
+      <div className={`${className} bg-neutral-100 overflow-hidden grid grid-cols-2 gap-0.5`}>
+        <div className="row-span-2">
+          <ImageWithFallback
+            src={books[0].cover_image_url}
+            alt={books[0].title}
+            className="w-full h-full object-cover"
+          />
+        </div>
+        <div className="relative">
+          <ImageWithFallback
+            src={books[1].cover_image_url}
+            alt={books[1].title}
+            className="w-full h-full object-cover"
+          />
+        </div>
+        <div className="relative">
+          <ImageWithFallback
+            src={books[2].cover_image_url}
+            alt={books[2].title}
+            className="w-full h-full object-cover"
+          />
+        </div>
+      </div>
+    );
+  }
+
+  // Para 4+ libros, mostrar collage de 2x2 con gap más pequeño
   return (
-    <div className={`${className} bg-neutral-100 overflow-hidden grid grid-cols-2 gap-1`}>
+    <div className={`${className} bg-neutral-100 overflow-hidden grid grid-cols-2 gap-0.5`}>
       {books.slice(0, 4).map((book, index) => (
         <div key={book.id} className="relative">
           <ImageWithFallback
@@ -73,7 +107,7 @@ export const ShelfCoverCollage = memo(function ShelfCoverCollage({
             className="w-full h-full object-cover"
           />
           {index === 3 && books.length > 4 && (
-            <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+            <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
               <span className="text-white text-xs font-semibold">+{books.length - 4}</span>
             </div>
           )}

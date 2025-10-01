@@ -50,7 +50,7 @@ interface ShelvesStore {
   // Selectores
   getShelfById: (id: number) => ShelfCardData | undefined;
   getShelvesBySearch: (query: string) => ShelfCardData[];
-  getShelvesBySort: (sortBy: 'name' | 'date' | 'books') => ShelfCardData[];
+  getShelvesBySort: (sortBy: 'name' | 'date') => ShelfCardData[];
 }
 
 // Crear el store
@@ -282,15 +282,13 @@ export const useShelvesStore = create<ShelvesStore>()(
       },
 
       // Get shelves by sort
-      getShelvesBySort: (sortBy: 'name' | 'date' | 'books') => {
+      getShelvesBySort: (sortBy: 'name' | 'date') => {
         return [...get().shelves].sort((a, b) => {
           switch (sortBy) {
             case 'name':
               return a.name.localeCompare(b.name);
             case 'date':
               return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-            case 'books':
-              return b.bookCount - a.bookCount;
             default:
               return 0;
           }
@@ -329,7 +327,7 @@ export const useShelvesBySearch = (query: string) =>
   useShelvesStore(state => state.getShelvesBySearch(query));
 
 // Selector para estanterías ordenadas
-export const useShelvesBySort = (sortBy: 'name' | 'date' | 'books') =>
+export const useShelvesBySort = (sortBy: 'name' | 'date') =>
   useShelvesStore(state => state.getShelvesBySort(sortBy));
 
 // Selector memoizado para evitar bucles infinitos

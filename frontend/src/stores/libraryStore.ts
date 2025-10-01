@@ -46,7 +46,6 @@ interface LibraryStore {
   // Selectores
   getUserBookStatus: (bookId: number) => ReadingStatusWithBook | undefined;
   getBooksByStatus: (status: 'N' | 'R' | 'C' | 'all') => BookCardData[];
-  getBooksByRating: (minRating: number) => BookCardData[];
   searchBooks: (query: string) => BookCardData[];
 }
 
@@ -223,11 +222,6 @@ export const useLibraryStore = create<LibraryStore>()(
       getBooksByStatus: (status: 'N' | 'R' | 'C' | 'all') => {
         if (status === 'all') return get().books;
         return get().books.filter(book => book.status === status);
-      },
-
-      // Get books by rating
-      getBooksByRating: (minRating: number) => {
-        return get().books.filter(book => book.rating >= minRating);
       },
 
       // Search books

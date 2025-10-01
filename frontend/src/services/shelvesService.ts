@@ -6,62 +6,14 @@ import type {
   BookshelfEntryResponse 
 } from '../types/shelves';
 import { API_ENDPOINTS } from '../config/constants';
-import { useAuthStore } from '../stores/authStore';
-
-const API_BASE_URL = 'http://localhost:8000/api';
-
-// Función helper para obtener el token de acceso
-const getAccessToken = (): string | null => {
-  const authStore = useAuthStore.getState();
-  return authStore.tokens?.access || null;
-};
-
-// Función helper para hacer requests autenticados
-const makeAuthenticatedRequest = async (url: string, options: RequestInit = {}) => {
-  const token = getAccessToken();
-  if (!token) {
-    throw new Error('No hay token de autenticación');
-  }
-
-  const response = await fetch(url, {
-    ...options,
-    headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json',
-      ...options.headers,
-    },
-  });
-
-  if (!response.ok) {
-    if (response.status === 401) {
-      throw new Error('Token de autenticación inválido');
-    }
-    if (response.status === 404) {
-      throw new Error('Recurso no encontrado');
-    }
-    if (response.status === 400) {
-      try {
-        const errorData = await response.json();
-        console.error('Error 400 del backend:', errorData);
-        throw new Error(`Error de validación: ${JSON.stringify(errorData)}`);
-      } catch (parseError) {
-        console.error('Error al parsear respuesta de error:', parseError);
-        throw new Error('Error en la petición (400)');
-      }
-    }
-    throw new Error(`Error del servidor: ${response.status}`);
-  }
-
-  return response;
-};
+import { get, post, patch, del, postFormData, patchFormData } from './baseService';
 
 // Servicio para gestión de estanterías
 export const shelvesService = {
   // Obtener todas las estanterías del usuario actual
   async getUserBookshelves(): Promise<Bookshelf[]> {
     try {
-      const response = await makeAuthenticatedRequest(`${API_BASE_URL}${API_ENDPOINTS.SHELVES.LIST}`);
-      const data = await response.json();
+      const data = await get<any>(API_ENDPOINTS.SHELVES.LIST);
       return data.results || data; // Manejar tanto paginación como lista simple
     } catch (error) {
       console.error('Error al obtener estanterías:', error);
@@ -72,9 +24,7 @@ export const shelvesService = {
   // Obtener una estantería específica con sus libros
   async getBookshelf(id: number): Promise<BookshelfWithBooks> {
     try {
-      const response = await makeAuthenticatedRequest(`${API_BASE_URL}${API_ENDPOINTS.SHELVES.DETAIL(id)}`);
-      const data = await response.json();
-      return data;
+      return await get<BookshelfWithBooks>(API_ENDPOINTS.SHELVES.DETAIL(id));
     } catch (error) {
       console.error('Error al obtener estantería:', error);
       throw error;
@@ -84,11 +34,6 @@ export const shelvesService = {
   // Crear una nueva estantería
   async createBookshelf(data: CreateBookshelfData): Promise<Bookshelf> {
     try {
-      const token = getAccessToken();
-      if (!token) {
-        throw new Error('No hay token de autenticación');
-      }
-
       // Si hay una imagen, usar FormData, sino usar JSON
       if (data.cover_image) {
         const formData = new FormData();
@@ -99,31 +44,7 @@ export const shelvesService = {
         formData.append('visibility', data.visibility || 'public');
         formData.append('cover_image', data.cover_image);
 
-        console.log('Enviando FormData con imagen:', {
-          name: data.name,
-          description: data.description,
-          visibility: data.visibility,
-          hasImage: !!data.cover_image
-        });
-
-        const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.SHELVES.CREATE}`, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-          },
-          body: formData,
-        });
-
-        if (!response.ok) {
-          if (response.status === 400) {
-            const errorData = await response.json();
-            console.error('Error de validación del backend:', errorData);
-            throw new Error(`Error de validación: ${JSON.stringify(errorData)}`);
-          }
-          throw new Error(`Error del servidor: ${response.status}`);
-        }
-
-        return await response.json();
+        return await postFormData<Bookshelf>(API_ENDPOINTS.SHELVES.CREATE, formData);
       } else {
         // Sin imagen, usar JSON normal
         const jsonData = {
@@ -132,16 +53,7 @@ export const shelvesService = {
           visibility: data.visibility || 'public',
         };
         
-        console.log('Enviando JSON sin imagen:', jsonData);
-
-        const response = await makeAuthenticatedRequest(`${API_BASE_URL}${API_ENDPOINTS.SHELVES.CREATE}`, {
-          method: 'POST',
-          body: JSON.stringify(jsonData),
-        });
-        
-        const result = await response.json();
-        console.log('Respuesta del backend:', result);
-        return result;
+        return await post<Bookshelf>(API_ENDPOINTS.SHELVES.CREATE, jsonData);
       }
     } catch (error) {
       console.error('Error al crear estantería:', error);
@@ -152,62 +64,34 @@ export const shelvesService = {
   // Actualizar una estantería existente
   async updateBookshelf(id: number, data: UpdateBookshelfData): Promise<Bookshelf> {
     try {
-      const token = getAccessToken();
-      if (!token) {
-        throw new Error('No hay token de autenticación');
-      }
-
       // Si hay una imagen o se solicita eliminar la imagen, usar FormData
       if (data.cover_image || data.remove_cover_image) {
         const formData = new FormData();
-        
-        if (data.name !== undefined) {
+        if (data.name) {
           formData.append('name', data.name);
         }
         if (data.description !== undefined) {
           formData.append('description', data.description);
         }
-        if (data.visibility !== undefined) {
+        if (data.visibility) {
           formData.append('visibility', data.visibility);
         }
         if (data.cover_image) {
           formData.append('cover_image', data.cover_image);
         }
         if (data.remove_cover_image) {
-          formData.append('cover_image', ''); // Enviar vacío para eliminar
+          formData.append('remove_cover_image', 'true');
         }
 
-        const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.SHELVES.UPDATE(id)}`, {
-          method: 'PATCH',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-          },
-          body: formData,
-        });
-
-        if (!response.ok) {
-          if (response.status === 400) {
-            const errorData = await response.json();
-            console.error('Error de validación del backend:', errorData);
-            throw new Error(`Error de validación: ${JSON.stringify(errorData)}`);
-          }
-          throw new Error(`Error del servidor: ${response.status}`);
-        }
-
-        return await response.json();
+        return await patchFormData<Bookshelf>(API_ENDPOINTS.SHELVES.UPDATE(id), formData);
       } else {
         // Sin imagen, usar JSON normal
-        const jsonData: Record<string, string> = {};
-        if (data.name !== undefined) jsonData.name = data.name;
+        const jsonData: any = {};
+        if (data.name) jsonData.name = data.name;
         if (data.description !== undefined) jsonData.description = data.description;
-        if (data.visibility !== undefined) jsonData.visibility = data.visibility;
+        if (data.visibility) jsonData.visibility = data.visibility;
 
-        const response = await makeAuthenticatedRequest(`${API_BASE_URL}${API_ENDPOINTS.SHELVES.UPDATE(id)}`, {
-          method: 'PATCH',
-          body: JSON.stringify(jsonData),
-        });
-        
-        return await response.json();
+        return await patch<Bookshelf>(API_ENDPOINTS.SHELVES.UPDATE(id), jsonData);
       }
     } catch (error) {
       console.error('Error al actualizar estantería:', error);
@@ -218,9 +102,7 @@ export const shelvesService = {
   // Eliminar una estantería
   async deleteBookshelf(id: number): Promise<void> {
     try {
-      await makeAuthenticatedRequest(`${API_BASE_URL}${API_ENDPOINTS.SHELVES.DELETE(id)}`, {
-        method: 'DELETE',
-      });
+      await del(API_ENDPOINTS.SHELVES.DELETE(id));
     } catch (error) {
       console.error('Error al eliminar estantería:', error);
       throw error;
@@ -230,13 +112,12 @@ export const shelvesService = {
   // Añadir un libro a una estantería
   async addBookToShelf(shelfId: number, bookId: number): Promise<BookshelfEntryResponse> {
     try {
-      const response = await makeAuthenticatedRequest(`${API_BASE_URL}${API_ENDPOINTS.SHELVES.ADD_BOOK(shelfId)}`, {
-        method: 'POST',
-        body: JSON.stringify({ book_id: bookId }),
-      });
-      return await response.json();
+      return await post<BookshelfEntryResponse>(
+        API_ENDPOINTS.SHELVES.ADD_BOOK(shelfId),
+        { book_id: bookId }
+      );
     } catch (error) {
-      console.error('Error al añadir libro a estantería:', error);
+      console.error('Error al añadir libro a la estantería:', error);
       throw error;
     }
   },
@@ -244,25 +125,34 @@ export const shelvesService = {
   // Remover un libro de una estantería
   async removeBookFromShelf(shelfId: number, bookId: number): Promise<BookshelfEntryResponse> {
     try {
-      const response = await makeAuthenticatedRequest(`${API_BASE_URL}${API_ENDPOINTS.SHELVES.REMOVE_BOOK(shelfId)}?book_id=${bookId}`, {
+      // El endpoint usa DELETE pero devuelve un body
+      const response = await fetch(`http://localhost:8000/api${API_ENDPOINTS.SHELVES.REMOVE_BOOK(shelfId)}?book_id=${bookId}`, {
         method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${(await import('./baseService')).getAccessToken()}`,
+          'Content-Type': 'application/json',
+        },
       });
+
+      if (!response.ok) {
+        throw new Error(`Error al eliminar libro: ${response.status}`);
+      }
+
       return await response.json();
     } catch (error) {
-      console.error('Error al remover libro de estantería:', error);
+      console.error('Error al remover libro de la estantería:', error);
       throw error;
     }
   },
 
-  // Obtener todos los libros de una estantería
+  // Obtener libros de una estantería específica
   async getShelfBooks(shelfId: number): Promise<any[]> {
     try {
-      const response = await makeAuthenticatedRequest(`${API_BASE_URL}${API_ENDPOINTS.SHELVES.BOOKS(shelfId)}`);
-      const data = await response.json();
+      const data = await get<any>(API_ENDPOINTS.SHELVES.BOOKS(shelfId));
       return data.results || data; // Manejar tanto paginación como lista simple
     } catch (error) {
-      console.error('Error al obtener libros de estantería:', error);
+      console.error('Error al obtener libros de la estantería:', error);
       throw error;
     }
-  },
+  }
 };
